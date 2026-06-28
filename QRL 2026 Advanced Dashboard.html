@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QRL 2026 Advanced Dashboard</title>
+<style>
+:root {
+  --bg:#090909; --bg2:#111; --card:#181818; --border:#242424;
+  --text:#e8e8e8; --muted:#777; --muted2:#555;
+  --hc:#A31F2E;
+  --accent:#A31F2E;
+  --gold:#F5A623; --green:#27AE60; --red:#E74C3C; --blue:#3498DB;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+
+/* HEADER */
+header{background:linear-gradient(135deg,#120408 0%,#0a0412 100%);border-bottom:2px solid var(--accent);padding:0 20px;}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px;flex-wrap:wrap;}
+.logo-area{display:flex;align-items:center;gap:14px;}
+.qrl-badge{width:50px;height:50px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#fff;flex-shrink:0;transition:background .3s;}
+h1{font-size:20px;font-weight:800;color:#fff;line-height:1.2;}
+.comp-label{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+
+/* TABS */
+.tab-nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto;}
+.tab-nav-inner{max-width:1400px;margin:0 auto;display:flex;}
+.tab-btn{padding:13px 16px;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;transition:all .2s;text-transform:uppercase;letter-spacing:.5px;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:#fff;border-bottom-color:var(--accent);}
+
+/* MAIN */
+main{max-width:1400px;margin:0 auto;padding:20px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* GRID */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:700px){.g4,.g3,.g2{grid-template-columns:1fr;}}
+.mb16{margin-bottom:16px;} .mb24{margin-bottom:24px;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+.card-sm{padding:14px;}
+
+/* SECTION HEADER */
+.sec{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec h2{font-size:16px;font-weight:800;white-space:nowrap;}
+.sec .ln{flex:1;height:1px;background:var(--border);}
+.sec .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;}
+.badge-accent{background:rgba(163,31,46,.2);color:var(--accent);}
+.badge-green{background:rgba(39,174,96,.15);color:var(--green);}
+
+/* STAT CARDS */
+.stat-val{font-size:30px;font-weight:900;color:#fff;line-height:1;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.5px;}
+.stat-sub{font-size:11px;color:var(--muted2);margin-top:3px;}
+.stat-delta{font-size:12px;font-weight:700;margin-top:4px;}
+.delta-pos{color:var(--green);}
+.delta-neg{color:var(--red);}
+
+/* MATCH CARDS */
+.match-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.match-card.upcoming{border-color:#2a2a5a;background:#0d0d1a;}
+.mt-home{flex:1;font-weight:700;font-size:13px;}
+.mt-away{flex:1;text-align:right;font-weight:700;font-size:13px;}
+.mt-score{display:flex;gap:6px;align-items:center;font-size:18px;font-weight:900;min-width:80px;justify-content:center;}
+.score-sep{color:var(--muted);font-size:12px;}
+.w{color:#fff;} .l{color:var(--muted);}
+.mt-venue{font-size:10px;color:var(--muted2);text-align:center;display:block;margin-top:1px;}
+.upcoming-tag{background:#1a1a4a;color:#6a8aff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+
+/* ROUND HEADER */
+.round-hdr{font-size:12px;font-weight:800;color:var(--accent);padding:10px 0 7px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px;}
+.round-hdr::after{content:'';flex:1;height:1px;background:var(--border);}
+.byes-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.bye-pill{display:inline-block;background:#151515;border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);}
+
+/* LADDER */
+.ladder-wrap{overflow-x:auto;}
+.ltable{width:100%;border-collapse:collapse;font-size:12px;}
+.ltable th{text-align:left;padding:9px 10px;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.ltable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.03);}
+.ltable tr:hover td{background:rgba(255,255,255,.02);}
+.ltable .right{text-align:right;} .ltable .center{text-align:center;}
+.lpos{font-size:10px;color:var(--muted);font-weight:700;min-width:24px;}
+.lpos-top{color:var(--green);}
+.lpos-1{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:var(--gold);color:#000;border-radius:50%;font-size:10px;font-weight:900;}
+.team-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:7px;flex-shrink:0;}
+.team-cell{display:flex;align-items:center;}
+.pts-cell{font-weight:900;color:#fff;font-size:14px;}
+.diff-p{color:var(--green);} .diff-n{color:var(--red);}
+.form-row{display:flex;gap:2px;}
+.fp{width:18px;height:18px;border-radius:3px;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.fp-W{background:var(--green);color:#fff;}
+.fp-L{background:var(--red);color:#fff;}
+.fp-D{background:var(--gold);color:#000;}
+.fp-B{background:#1a1a1a;color:var(--muted2);}
+.quals-bar{background:var(--border);height:2px;width:100%;margin:6px 0;}
+
+/* BAR CHART */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bar-team{width:120px;font-size:11px;font-weight:600;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:22px;background:#151515;border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+.bar-val{width:42px;font-size:12px;font-weight:800;text-align:right;flex-shrink:0;}
+
+/* PROFILE */
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:900px){.profile-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.profile-grid{grid-template-columns:1fr;}}
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.profile-hdr{padding:14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.team-badge-lg{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#fff;flex-shrink:0;}
+.profile-name{font-size:14px;font-weight:800;}
+.profile-record{font-size:11px;color:var(--muted);margin-top:2px;}
+.profile-body{padding:12px 14px;}
+.pstat{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,.03);}
+.pstat:last-child{border-bottom:none;}
+.pstat-label{color:var(--muted);}
+.pstat-val{font-weight:700;color:#fff;}
+.profile-form{display:flex;gap:3px;margin-top:10px;}
+
+/* SCOUT */
+.scout-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;}
+.scout-hdr{display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);}
+.scout-hdr-info{flex:1;}
+.scout-hdr-name{font-size:15px;font-weight:800;}
+.scout-hdr-record{font-size:11px;color:var(--muted);margin-top:2px;}
+.scout-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;}
+@media(max-width:800px){.scout-body{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.scout-body{grid-template-columns:1fr;}}
+.scout-section{padding:14px 18px;border-right:1px solid var(--border);}
+.scout-section:last-child{border-right:none;}
+.scout-stitle{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.green-title{color:var(--green);}
+.red-title{color:var(--red);}
+.amber-title{color:var(--gold);}
+.scout-item{font-size:11px;color:var(--muted);padding:3px 0 3px 12px;position:relative;line-height:1.4;}
+.scout-item::before{content:'▸';position:absolute;left:0;font-size:9px;}
+.scout-verdict{padding:12px 18px;background:rgba(255,255,255,.02);border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.5;font-style:italic;}
+
+/* FILTER */
+.filter-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.fbtn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:11px;font-weight:700;transition:all .2s;text-transform:uppercase;letter-spacing:.3px;}
+.fbtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+
+/* SMALL HELPERS */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+.leader-card{background:linear-gradient(135deg,#1a0a10,#0f0a1a);border:1px solid #2a1a30;border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:16px;}
+.leader-badge{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;}
+.leader-pos{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.leader-name{font-size:20px;font-weight:900;color:#fff;margin:2px 0;}
+.leader-stat{font-size:12px;color:var(--muted);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr">
+    <div class="header-inner">
+      <div class="logo-area">
+        <div class="qrl-badge" id="qrl-badge">QRL</div>
+        <div>
+          <h1>QRL 2026 Advanced Dashboard</h1>
+          <div class="comp-label" id="comp-label">HOSTPLUS CUP · ROUNDS 1–14</div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="tab-nav">
+    <div class="tab-nav-inner" id="tabs">
+      <button class="tab-btn" onclick="showTab('guide')">📖 How to Use</button>
+      <button class="tab-btn active" onclick="showTab('hub')">🎯 Intelligence Hub</button>
+      <button class="tab-btn" onclick="showTab('results')">📅 Results</button>
+      <button class="tab-btn" onclick="showTab('ladder')">🏆 Ladder</button>
+      <button class="tab-btn" onclick="showTab('metrics')">📊 Metrics</button>
+      <button class="tab-btn" onclick="showTab('profiles')">👥 Profiles</button>
+      <button class="tab-btn" onclick="showTab('scout')">🔍 Scout Reports</button>
+    </div>
+  </div>
+  <main>
+    <div id="tab-guide" class="tab-panel"></div>
+    <div id="tab-hub" class="tab-panel active"></div>
+    <div id="tab-results" class="tab-panel"></div>
+    <div id="tab-ladder" class="tab-panel"></div>
+    <div id="tab-metrics" class="tab-panel"></div>
+    <div id="tab-profiles" class="tab-panel"></div>
+    <div id="tab-scout" class="tab-panel"></div>
+  </main>
+</div>
+<script>
+// ═══════════════════════════════════════════════════
+// TEAM COLOURS
+// ═══════════════════════════════════════════════════
+const TC = {
+  'Falcons':     '#0052A5',
+  'WM Seagulls': '#1A7A3C',
+  'Tigers':      '#E87722',
+  'Seagulls':    '#004BA0',
+  'Blackhawks':  '#E6B800',
+  'Capras':      '#8B0000',
+  'Jets':        '#0099CC',
+  'Dolphins':    '#E31837',
+  'Cutters':     '#007A33',
+  'Devils':      '#CC0000',
+  'Pride':       '#7B2FBE',
+  'Bears':       '#C5A900',
+  'Magpies':     '#555',
+  'Clydesdales': '#8B4513',
+  'Hunters':     '#FF6B00',
+};
+const tc = n => TC[n] || '#666';
+
+function initials(n){ return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+// ═══════════════════════════════════════════════════
+// HOSTPLUS CUP DATA
+// ═══════════════════════════════════════════════════
+const HC_ROUNDS = [
+  {r:1, m:[
+    {h:'WM Seagulls',hs:16,a:'Magpies',   as:24,v:'BMD Kougari Oval'},
+    {h:'Seagulls',   hs:34,a:'Falcons',   as:28,v:'Preston Building Complex'},
+    {h:'Devils',     hs:18,a:'Cutters',   as:32,v:"Premiers' Park"},
+    {h:'Dolphins',   hs:12,a:'Bears',     as:22,v:'Kayo Stadium'},
+    {h:'Clydesdales',hs:12,a:'Tigers',    as:22,v:'Toowoomba Sports Ground'},
+    {h:'Jets',       hs:30,a:'Blackhawks',as:0, v:'Richardson Park'},
+    {h:'Hunters',    hs:16,a:'Capras',    as:24,v:'Santos National Football Stadium'},
+  ], byes:['Pride']},
+  {r:2, m:[
+    {h:'Jets',       hs:12,a:'Falcons',   as:24,v:'Richardson Park'},
+    {h:'Dolphins',   hs:28,a:'Blackhawks',as:14,v:'Kayo Stadium'},
+    {h:'Tigers',     hs:36,a:'Capras',    as:22,v:'Totally Workwear Stadium'},
+    {h:'Pride',      hs:30,a:'Seagulls',  as:24,v:'Barlow Park'},
+    {h:'Clydesdales',hs:10,a:'Devils',    as:42,v:'Toowoomba Sports Ground'},
+    {h:'Hunters',    hs:20,a:'WM Seagulls',as:28,v:'Santos National Football Stadium'},
+    {h:'Magpies',    hs:28,a:'Bears',     as:28,v:'Davies Park'},
+  ], byes:['Cutters']},
+  {r:3, m:[
+    {h:'Seagulls',   hs:28,a:'Bears',     as:28,v:'Preston Building Complex'},
+    {h:'Cutters',    hs:24,a:'Capras',    as:10,v:'BB Print Stadium'},
+    {h:'Blackhawks', hs:8, a:'Pride',     as:20,v:'Jack Manski Oval'},
+    {h:'Devils',     hs:24,a:'Magpies',   as:24,v:"Premiers' Park"},
+    {h:'Jets',       hs:48,a:'Tigers',    as:6, v:'Richardson Park'},
+    {h:'WM Seagulls',hs:16,a:'Dolphins',  as:36,v:'BMD Kougari Oval'},
+    {h:'Clydesdales',hs:14,a:'Hunters',   as:38,v:'Toowoomba Sports Ground'},
+  ], byes:['Falcons']},
+  {r:4, m:[
+    {h:'Tigers',     hs:22,a:'Devils',    as:12,v:'Totally Workwear Stadium'},
+    {h:'Bears',      hs:26,a:'Pride',     as:18,v:'UAA Park'},
+    {h:'Falcons',    hs:20,a:'Clydesdales',as:18,v:'Sunshine Coast Stadium'},
+    {h:'Dolphins',   hs:33,a:'Hunters',   as:4, v:'Kayo Stadium'},
+    {h:'Magpies',    hs:30,a:'Jets',      as:32,v:'Davies Park'},
+    {h:'Blackhawks', hs:34,a:'Seagulls',  as:6, v:'Jack Manski Oval'},
+    {h:'WM Seagulls',hs:26,a:'Cutters',   as:26,v:'BMD Kougari Oval'},
+  ], byes:['Capras']},
+  {r:5, m:[
+    {h:'Pride',      hs:18,a:'Cutters',   as:18,v:'Barlow Park'},
+    {h:'Seagulls',   hs:36,a:'Magpies',   as:12,v:'Preston Building Complex'},
+    {h:'Jets',       hs:18,a:'Bears',     as:16,v:'Richardson Park'},
+    {h:'Blackhawks', hs:26,a:'WM Seagulls',as:12,v:'Jack Manski Oval'},
+    {h:'Devils',     hs:18,a:'Capras',    as:26,v:"Premiers' Park"},
+    {h:'Falcons',    hs:18,a:'Dolphins',  as:12,v:'Sunshine Coast Stadium'},
+    {h:'Tigers',     hs:34,a:'Hunters',   as:18,v:'Totally Workwear Stadium'},
+  ], byes:['Clydesdales']},
+  {r:6, m:[
+    {h:'Pride',      hs:24,a:'Falcons',   as:26,v:'Barlow Park'},
+    {h:'Hunters',    hs:26,a:'Jets',      as:24,v:'Santos National Football Stadium'},
+    {h:'Tigers',     hs:4, a:'WM Seagulls',as:24,v:'Totally Workwear Stadium'},
+    {h:'Blackhawks', hs:6, a:'Capras',    as:12,v:'Jack Manski Oval'},
+    {h:'Cutters',    hs:46,a:'Seagulls',  as:18,v:'BB Print Stadium'},
+    {h:'Clydesdales',hs:24,a:'Magpies',   as:34,v:'Toowoomba Sports Ground'},
+    {h:'Bears',      hs:38,a:'Devils',    as:22,v:'UAA Park'},
+  ], byes:['Dolphins']},
+  {r:7, m:[
+    {h:'Seagulls',   hs:24,a:'Capras',    as:26,v:'Preston Building Sports Complex'},
+    {h:'Bears',      hs:42,a:'Hunters',   as:4, v:'UAA Park'},
+    {h:'Blackhawks', hs:18,a:'Tigers',    as:28,v:'Jack Manski Oval'},
+    {h:'Devils',     hs:10,a:'Dolphins',  as:22,v:"Premiers' Park"},
+    {h:'Magpies',    hs:32,a:'Falcons',   as:38,v:'Davies Park'},
+    {h:'Cutters',    hs:18,a:'Jets',      as:28,v:'BB Print Stadium'},
+    {h:'WM Seagulls',hs:40,a:'Clydesdales',as:16,v:'BMD Kougari Oval'},
+  ], byes:['Pride']},
+  {r:8, m:[
+    {h:'Hunters',    hs:8, a:'Falcons',   as:28,v:'Santos National Football Stadium'},
+    {h:'Capras',     hs:24,a:'Bears',     as:18,v:'Aurizon Stadium'},
+    {h:'Clydesdales',hs:24,a:'Blackhawks',as:38,v:'Father Ranger Oval'},
+    {h:'Magpies',    hs:28,a:'Cutters',   as:14,v:'Davies Park'},
+    {h:'Dolphins',   hs:20,a:'Pride',     as:20,v:'Kayo Stadium'},
+  ], byes:['Devils','Jets','Seagulls','Tigers','WM Seagulls']},
+  {r:9, m:[
+    {h:'WM Seagulls',hs:16,a:'Devils',    as:14,v:'BMD Kougari Oval'},
+    {h:'Blackhawks', hs:10,a:'Dolphins',  as:32,v:'Jack Manski Oval'},
+    {h:'Falcons',    hs:14,a:'Tigers',    as:12,v:'Sunshine Coast Stadium'},
+    {h:'Capras',     hs:28,a:'Jets',      as:28,v:'Aurizon Stadium'},
+    {h:'Seagulls',   hs:24,a:'Clydesdales',as:28,v:'Preston Building Sports Complex'},
+    {h:'Cutters',    hs:26,a:'Hunters',   as:24,v:'BB Print Stadium'},
+    {h:'Magpies',    hs:36,a:'Pride',     as:36,v:'Davies Park'},
+  ], byes:['Bears']},
+  {r:10, m:[
+    {h:'Pride',      hs:40,a:'Clydesdales',as:12,v:'Barlow Park'},
+    {h:'Cutters',    hs:13,a:'Bears',     as:14,v:'BB Print Stadium'},
+    {h:'Hunters',    hs:20,a:'Magpies',   as:30,v:'Santos National Football Stadium'},
+    {h:'Falcons',    hs:38,a:'WM Seagulls',as:30,v:'Sunshine Coast Stadium'},
+    {h:'Capras',     hs:16,a:'Dolphins',  as:36,v:'Aurizon Stadium'},
+    {h:'Jets',       hs:22,a:'Seagulls',  as:20,v:'Richardson Park - Woogaroo Field'},
+    {h:'Devils',     hs:16,a:'Tigers',    as:24,v:"Premiers' Park"},
+  ], byes:['Blackhawks']},
+  {r:11, m:[
+    {h:'Bears',      hs:22,a:'Magpies',   as:31,v:'UAA Park'},
+    {h:'Tigers',     hs:22,a:'Dolphins',  as:40,v:'Totally Workwear Stadium'},
+    {h:'Seagulls',   hs:22,a:'Pride',     as:22,v:'Preston Building Sports Complex'},
+    {h:'WM Seagulls',hs:36,a:'Capras',    as:10,v:'BMD Kougari Oval'},
+    {h:'Blackhawks', hs:22,a:'Cutters',   as:24,v:'Jack Manski Oval'},
+    {h:'Devils',     hs:12,a:'Falcons',   as:32,v:"Premiers' Park"},
+    {h:'Jets',       hs:24,a:'Clydesdales',as:38,v:'Pete Albrow Oval'},
+  ], byes:['Hunters']},
+  {r:12, m:[
+    {h:'Clydesdales',hs:20,a:'Dolphins',  as:52,v:'Toowoomba Sports Ground'},
+    {h:'Seagulls',   hs:36,a:'Hunters',   as:18,v:'Preston Building Sports Complex'},
+    {h:'Tigers',     hs:16,a:'Blackhawks',as:44,v:'Totally Workwear Stadium'},
+    {h:'Pride',      hs:22,a:'WM Seagulls',as:30,v:'Barlow Park'},
+    {h:'Bears',      hs:22,a:'Falcons',   as:29,v:'UAA Park'},
+  ], byes:['Capras','Cutters','Devils','Jets','Magpies']},
+  {r:13, m:[
+    {h:'Blackhawks', hs:34,a:'Jets',      as:10,v:'Jack Manski Oval'},
+    {h:'Capras',     hs:10,a:'Clydesdales',as:34,v:'Aurizon Stadium'},
+    {h:'Cutters',    hs:27,a:'Magpies',   as:26,v:'BB Print Stadium'},
+    {h:'Devils',     hs:26,a:'Seagulls',  as:16,v:"Premiers' Park"},
+    {h:'Hunters',    hs:12,a:'Bears',     as:22,v:'Santos National Football Stadium'},
+  ], byes:['Dolphins','Falcons','Pride','Tigers','WM Seagulls']},
+  {r:14, m:[
+    {h:'Capras',a:'Magpies',v:'Aurizon Stadium',upcoming:true},
+    {h:'Cutters',a:'Tigers',v:'BB Print Stadium',upcoming:true},
+    {h:'Dolphins',a:'Jets',v:'Kayo Stadium',upcoming:true},
+    {h:'Falcons',a:'Blackhawks',v:'Sunshine Coast Stadium',upcoming:true},
+    {h:'Devils',a:'WM Seagulls',v:"Premiers' Park",upcoming:true},
+    {h:'Hunters',a:'Pride',v:'Santos National Football Stadium',upcoming:true},
+  ], byes:['Bears','Clydesdales','Seagulls']},
+];
+
+
+// ═══════════════════════════════════════════════════
+// COMPUTED STATS
+// ═══════════════════════════════════════════════════
+function computeStats(rounds) {
+  const s = {};
+  rounds.forEach(rnd => {
+    rnd.m.forEach(m => {
+      if (m.upcoming) return;
+      [m.h, m.a].forEach(t => { if (!s[t]) s[t]={p:0,w:0,d:0,l:0,f:0,a:0,results:[]}; });
+      s[m.h].p++; s[m.h].f+=m.hs; s[m.h].a+=m.as;
+      s[m.a].p++; s[m.a].f+=m.as; s[m.a].a+=m.hs;
+      const [hres, ares] = m.hs>m.as ? ['W','L'] : m.hs<m.as ? ['L','W'] : ['D','D'];
+      s[m.h][hres==='W'?'w':hres==='L'?'l':'d']++;
+      s[m.a][ares==='W'?'w':ares==='L'?'l':'d']++;
+      s[m.h].results.push({r:rnd.r,res:hres,sc:m.hs,oc:m.as,opp:m.a});
+      s[m.a].results.push({r:rnd.r,res:ares,sc:m.as,oc:m.hs,opp:m.h});
+    });
+  });
+  Object.values(s).forEach(t => {
+    t.diff = t.f - t.a;
+    t.pts = t.w*2 + t.d;
+    t.pct = t.p > 0 ? Math.round(t.w/t.p*100) : 0;
+    t.avgF = t.p > 0 ? (t.f/t.p).toFixed(1) : 0;
+    t.avgA = t.p > 0 ? (t.a/t.p).toFixed(1) : 0;
+    t.results.sort((a,b)=>a.r-b.r);
+    t.form = getForm(t.results, 5);
+  });
+  return s;
+}
+
+function getForm(results, n=5) {
+  return results.slice(-n).map(r=>r.res);
+}
+
+function sortedLadder(stats) {
+  return Object.entries(stats)
+    .map(([k,v]) => ({team:k,...v}))
+    .sort((a,b) => b.pts!==a.pts ? b.pts-a.pts : b.diff-a.diff);
+}
+
+function buildFormHtml(form, maxLen=5) {
+  const padded = Array(maxLen-form.length).fill('B').concat(form);
+  return padded.map(r=>`<div class="fp fp-${r}">${r==='B'?'·':r}</div>`).join('');
+}
+
+function allMatches(rounds) {
+  const all = [];
+  rounds.forEach(rnd => rnd.m.forEach(m => { if (!m.upcoming) all.push({...m, r:rnd.r}); }));
+  return all;
+}
+
+function seasonSummary(rounds) {
+  const matches = allMatches(rounds);
+  const totalPts = matches.reduce((s,m) => s+m.hs+m.as, 0);
+  const draws = matches.filter(m=>m.hs===m.as).length;
+  const biggest = matches.reduce((best,m) => {
+    const mg = Math.abs(m.hs-m.as);
+    return mg > best.mg ? {mg, m} : best;
+  }, {mg:0, m:null});
+  const highest = matches.reduce((best,m) => {
+    const tot = m.hs+m.as;
+    return tot > best.tot ? {tot, m} : best;
+  }, {tot:0, m:null});
+  return {
+    games: matches.length,
+    avgScore: matches.length ? (totalPts/matches.length/2).toFixed(1) : 0,
+    avgTotal: matches.length ? (totalPts/matches.length).toFixed(1) : 0,
+    draws,
+    biggest,
+    highest,
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let TAB = 'hub';
+
+function getRounds() { return HC_ROUNDS; }
+function getStats() { return computeStats(getRounds()); }
+
+// ═══════════════════════════════════════════════════
+// RENDER: INTELLIGENCE HUB (UPGRADED)
+// ═══════════════════════════════════════════════════
+function renderHub() {
+  const rounds = getRounds();
+  const stats = getStats();
+  const ladder = sortedLadder(stats);
+  const sum = seasonSummary(rounds);
+  const leader = ladder[0];
+  const lastRound = rounds.filter(rnd => rnd.m.some(m=>!m.upcoming)).slice(-1)[0];
+  const upcoming = rounds.find(rnd => rnd.m.some(m=>m.upcoming));
+  const completedRounds = rounds.filter(r=>r.m.some(m=>!m.upcoming)).length;
+  const allM = allMatches(rounds);
+
+  // Season analytics
+  const atkRanked = [...ladder].sort((a,b)=>parseFloat(b.avgF)-parseFloat(a.avgF));
+  const defRanked = [...ladder].sort((a,b)=>parseFloat(a.avgA)-parseFloat(b.avgA));
+  const drawKing = [...ladder].sort((a,b)=>b.d-a.d)[0];
+  const worstAvgA = parseFloat([...ladder].sort((a,b)=>parseFloat(b.avgA)-parseFloat(a.avgA))[0].avgA);
+  let homeW=0, homeTotal=0;
+  allM.forEach(m=>{homeTotal++;if(m.hs>m.as)homeW++;});
+  const homeWinPct = homeTotal ? Math.round(homeW/homeTotal*100) : 0;
+  const bestStreak = ladder.reduce((best,t)=>{
+    let streak=0,maxS=0;
+    t.results.forEach(r=>{if(r.res==='W'){streak++;maxS=Math.max(maxS,streak);}else streak=0;});
+    return maxS>best.n?{n:maxS,team:t.team}:best;
+  },{n:0,team:''});
+
+  // 8 stat tiles
+  const tiles=[
+    {l:"Rounds Played",   v:completedRounds, s:`R1–R${lastRound?.r||'?'} · 2026 Season`},
+    {l:"Matches Played",  v:sum.games,       s:`${allM.length} results logged`},
+    {l:"Ladder Leader",   v:initials(leader.team), s:`${leader.team} · ${leader.pts} pts`},
+    {l:"Top Avg Scorer",  v:atkRanked[0]?.avgF,   s:`${atkRanked[0]?.team} pts/game`},
+    {l:"Best Defence",    v:defRanked[0]?.avgA,   s:`${defRanked[0]?.team} conceded/gm`},
+    {l:"Total Draws",     v:sum.draws,       s:`${Math.round(sum.draws/sum.games*100)}% of all games`},
+    {l:"Biggest Margin",  v:`+${sum.biggest.mg}`, s:`${sum.biggest.m?(sum.biggest.m.hs>sum.biggest.m.as?sum.biggest.m.h:sum.biggest.m.a)+' R'+sum.biggest.m.r:'—'}`},
+    {l:"Best Win Streak", v:bestStreak.n,    s:`${bestStreak.team} consecutive`},
+  ];
+
+  const analystInsights=[
+    `<strong>${atkRanked[0]?.team}</strong> lead all teams averaging <strong>${atkRanked[0]?.avgF} pts/game</strong> — a dominant output that sets the attacking benchmark for 2026.`,
+    `<strong>${defRanked[0]?.team}</strong> are the defensive backbone of the competition, conceding just <strong>${defRanked[0]?.avgA} pts/game</strong> — built on physicality and line speed.`,
+    `<strong>Draw rate of ${Math.round(sum.draws/sum.games*100)}%</strong> across ${sum.games} games shows how finely matched teams are in 2026. ${drawKing?.team} lead with ${drawKing?.d} draws — hard to beat, but struggling to win.`,
+    `Home teams win ${homeWinPct}% of games — ${homeWinPct>=55?'home ground is a decisive factor, making venue selection critical for finals':'competition is remarkably balanced regardless of venue in 2026'}.`,
+    `<strong>${bestStreak.team}</strong> posted the comp's best win streak at <strong>${bestStreak.n} consecutive wins</strong> — a run that defines their season trajectory.`,
+    `Finals race: ${ladder[7]?.team||'8th'} sit 8th on ${ladder[7]?.pts||0} pts, just ${leader.pts-(ladder[7]?.pts||0)} behind the leader. Every result counts through the run home to finals.`,
+  ];
+
+  let hubHtml=`
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
+    ${tiles.map(t=>`<div class="card card-sm" style="text-align:center;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">${t.l}</div>
+      <div style="font-size:26px;font-weight:900;color:#fff;line-height:1;">${t.v}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:4px;">${t.s}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="g3 mb24">
+    <div>
+      <div class="sec mb16"><h2>🥇 Competition Leader</h2><div class="ln"></div></div>
+      <div class="leader-card">
+        <div class="leader-badge" style="background:${tc(leader.team)};">${initials(leader.team)}</div>
+        <div style="flex:1;">
+          <div class="leader-pos">1st · ${leader.pts} pts</div>
+          <div class="leader-name">${leader.team}</div>
+          <div class="leader-stat">${leader.w}W ${leader.d}D ${leader.l}L &nbsp;|&nbsp; ${leader.diff>=0?'+':''}${leader.diff} diff</div>
+          <div style="display:flex;gap:3px;margin-top:8px;">${buildFormHtml(leader.form)}</div>
+        </div>
+      </div>
+      ${ladder.slice(1,3).filter(Boolean).map((t,i)=>`<div class="card card-sm" style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:12px;font-weight:900;color:var(--muted);width:20px;">${i+2}</div>
+        <div style="width:30px;height:30px;border-radius:50%;background:${tc(t.team)};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;flex-shrink:0;">${initials(t.team)}</div>
+        <div style="flex:1;"><div style="font-size:12px;font-weight:700;">${t.team}</div><div style="font-size:10px;color:var(--muted);">${t.pts} pts · ${t.w}W-${t.l}L</div></div>
+        <div style="font-size:12px;color:${t.diff>=0?'var(--green)':'var(--red)'};">${t.diff>=0?'+':''}${t.diff}</div>
+      </div>`).join('')}
+    </div>
+    <div>
+      <div class="sec mb16"><h2>⚔️ Top Attack</h2><div class="ln"></div><span class="badge badge-green">AVG PTS/GAME</span></div>
+      <div class="card">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Season average — points scored per game</div>
+        ${atkRanked.slice(0,8).map((t,i)=>{
+          const avg=parseFloat(t.avgF);
+          const maxAvg=parseFloat(atkRanked[0].avgF);
+          const bar=maxAvg>0?Math.round((avg/maxAvg)*100):0;
+          const col=avg>=28?'#4ADE80':avg>=22?'#FACC15':'#F87171';
+          return `<div class="bar-row">
+            <div class="bar-team" style="width:105px;">${i+1}. ${t.team.length>11?t.team.split(' ').pop():t.team}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${bar}%;background:${col};"></div></div>
+            <div class="bar-val">${avg}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="sec mb16"><h2>🛡️ Best Defence</h2><div class="ln"></div><span class="badge" style="background:rgba(231,76,60,.15);color:var(--red);">AVG CONCEDED</span></div>
+      <div class="card">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Season average — points conceded per game</div>
+        ${defRanked.slice(0,8).map((t,i)=>{
+          const avg=parseFloat(t.avgA);
+          const bar=worstAvgA>0?Math.round((avg/worstAvgA)*100):0;
+          const col=avg<=20?'#4ADE80':avg<=26?'#FACC15':'#F87171';
+          return `<div class="bar-row">
+            <div class="bar-team" style="width:105px;">${i+1}. ${t.team.length>11?t.team.split(' ').pop():t.team}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${bar}%;background:${col};"></div></div>
+            <div class="bar-val">${avg}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="sec mb16"><h2>🔬 Analyst Insights</h2><div class="ln"></div><span class="badge badge-accent">AI ANALYSIS</span></div>
+  <div class="card mb24">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      ${analystInsights.map(txt=>`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;">
+        <span style="color:var(--accent);font-weight:700;margin-right:4px;">▸</span>${txt}
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  if(lastRound){
+    hubHtml+=`<div class="sec mb16"><h2>📅 Round ${lastRound.r} Results</h2><div class="ln"></div><span class="badge badge-accent">LAST ROUND</span></div>`;
+    hubHtml+=lastRound.m.map(m=>matchCardHtml(m)).join('');
+    if(lastRound.byes.length) hubHtml+=`<div class="byes-row">${lastRound.byes.map(b=>`<span class="bye-pill">BYE: ${b}</span>`).join('')}</div>`;
+  }
+  if(upcoming){
+    hubHtml+=`<div class="divider"></div><div class="sec mb16"><h2>⏳ Round ${upcoming.r} — Upcoming</h2><div class="ln"></div><span class="badge" style="background:rgba(106,138,255,.15);color:#6a8aff;">UPCOMING</span></div>`;
+    hubHtml+=upcoming.m.map(m=>matchCardHtml(m)).join('');
+    if(upcoming.byes.length) hubHtml+=`<div class="byes-row">${upcoming.byes.map(b=>`<span class="bye-pill">BYE: ${b}</span>`).join('')}</div>`;
+  }
+
+  document.getElementById('tab-hub').innerHTML=hubHtml;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: HOW TO USE GUIDE
+// ═══════════════════════════════════════════════════
+function renderGuide() {
+  const html=`
+  <div class="g2 mb24">
+    <div>
+      <div class="sec mb16"><h2>📖 About This Dashboard</h2><div class="ln"></div></div>
+      <div class="card">
+        <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:14px;">The <strong style="color:#fff">QRL 2026 Advanced Dashboard</strong> provides comprehensive analytics for the Hostplus Cup competition — Queensland's premier men's rugby league competition featuring 15 teams across the state.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8;">All data is computed dynamically from match-by-match results. Stats update automatically as new rounds are added to the data source.</p>
+      </div>
+    </div>
+    <div>
+      <div class="sec mb16"><h2>🔢 Metric Glossary</h2><div class="ln"></div></div>
+      <div class="card">
+        ${[
+          ['PF / PA','Points For / Points Against — total season scoring'],
+          ['DIFF','Points differential (PF minus PA) — season net score'],
+          ['Avg F / Avg A','Average points scored or conceded per game'],
+          ['PTS','Ladder points: 2 for win, 1 for draw, 0 for loss'],
+          ['Form','Last 5 results: W=Win, L=Loss, D=Draw, ·=Bye'],
+          ['Draw Rate','% of completed matches ending in a draw'],
+          ['Win Streak','Longest consecutive winning sequence in 2026'],
+          ['Home Win %','% of home team wins across all completed games'],
+        ].map(([k,v])=>`<div class="pstat"><span class="pstat-label">${k}</span><span style="font-size:11px;color:var(--text);max-width:200px;text-align:right;">${v}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="sec mb16"><h2>🗂️ Tab Guide</h2><div class="ln"></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+    ${[
+      ['🎯 Intelligence Hub','Season overview with 8 stat tiles, attack/defence rankings, analyst insights, latest results and upcoming fixtures — your daily go-to view.'],
+      ['📅 Results','Complete match-by-match results for all rounds, displayed newest first. Shows scores, venues and bye teams.'],
+      ['🏆 Ladder','Full competition ladder with W/D/L, Points For/Against, differential, ladder points and last-5 form guide. Finals line shown.'],
+      ['📊 Metrics','Deep statistics: total points scored, points conceded, points differential, score distribution and win/draw/loss breakdown table.'],
+      ['👥 Profiles','Card-based overview of every team — record, points, averages, differential and form guide at a glance.'],
+      ['🔍 Scout Reports','Detailed team-by-team scouting: strengths, weaknesses, how to beat them, and analyst verdict. Essential for game preparation.'],
+    ].map(([title,desc])=>`<div class="card card-sm">
+      <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:8px;">${title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">${desc}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="sec mb16"><h2>⚡ Data Notes</h2><div class="ln"></div></div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;"><strong style="color:#fff">Competition:</strong> Hostplus Cup 2026 — 15 teams, 14 rounds of regular season data loaded. Finals structure TBC.<br><br><strong style="color:#fff">Teams:</strong> Falcons (Sunshine Coast), WM Seagulls (Wynnum-Manly), Tigers (Ipswich), Seagulls (Tweed), Blackhawks (Townsville), Capras (Central QLD), Jets (Souths), Dolphins (Redcliffe), Cutters (Mackay), Devils (Norths), Pride (Cairns), Bears (Burleigh), Magpies (Western Suburbs), Clydesdales (Toowoomba), Hunters (Port Moresby).</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;"><strong style="color:#fff">Calculations:</strong> All stats are computed live from the raw match data arrays. Win rate, averages and differentials auto-calculate. Form guide reflects last 5 played games (byes not counted).<br><br><strong style="color:#fff">Data Currency:</strong> Dashboard reflects data through Round 13 completed, with Round 14 fixtures loaded as upcoming. Update the HC_ROUNDS array to add new results.</div>
+    </div>
+  </div>`;
+  document.getElementById('tab-guide').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: RESULTS
+// ═══════════════════════════════════════════════════
+function renderResults() {
+  const rounds = getRounds();
+  let html = '';
+  [...rounds].reverse().forEach(rnd => {
+    html += `<div class="round-hdr">Round ${rnd.r}</div>`;
+    html += rnd.m.map(m => matchCardHtml(m)).join('');
+    if (rnd.byes.length) {
+      html += `<div class="byes-row">${rnd.byes.map(b=>`<span class="bye-pill">BYE: ${b}</span>`).join('')}</div>`;
+    }
+  });
+  document.getElementById('tab-results').innerHTML = html;
+}
+
+function matchCardHtml(m) {
+  if (m.upcoming) {
+    return `<div class="match-card upcoming">
+      <div class="mt-home">${m.h}</div>
+      <div class="mt-score"><span class="upcoming-tag">UPCOMING</span></div>
+      <div class="mt-away">${m.a}</div>
+      <span class="mt-venue">${m.v || ''}</span>
+    </div>`;
+  }
+  const hw = m.hs > m.as, aw = m.as > m.hs, draw = m.hs === m.as;
+  return `<div class="match-card">
+    <div class="mt-home ${hw||draw?'w':'l'}">${m.h}</div>
+    <div class="mt-score">
+      <span class="${hw||draw?'w':'l'}">${m.hs}</span>
+      <span class="score-sep">–</span>
+      <span class="${aw||draw?'w':'l'}">${m.as}</span>
+    </div>
+    <div class="mt-away ${aw||draw?'w':'l'}">${m.a}</div>
+    <span class="mt-venue">${m.v || ''}</span>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: LADDER
+// ═══════════════════════════════════════════════════
+function renderLadder() {
+  const stats = getStats();
+  const ladder = sortedLadder(stats);
+  const finals = 8;
+
+  let html = `<div class="card">
+  <div class="ladder-wrap">
+  <table class="ltable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Team</th>
+        <th class="center">P</th>
+        <th class="center">W</th>
+        <th class="center">D</th>
+        <th class="center">L</th>
+        <th class="right">PF</th>
+        <th class="right">PA</th>
+        <th class="right">DIFF</th>
+        <th class="right">PTS</th>
+        <th class="center">FORM</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  ladder.forEach((t, i) => {
+    const pos = i+1;
+    const posHtml = pos===1
+      ? `<span class="lpos-1">1</span>`
+      : `<span class="lpos ${pos<=finals?'lpos-top':''}">${pos}</span>`;
+    const diffHtml = t.diff >= 0
+      ? `<span class="diff-p">+${t.diff}</span>`
+      : `<span class="diff-n">${t.diff}</span>`;
+
+    if (pos === finals+1) {
+      html += `<tr><td colspan="11"><div class="quals-bar"></div></td></tr>`;
+    }
+
+    html += `<tr>
+      <td>${posHtml}</td>
+      <td><div class="team-cell"><span class="team-dot" style="background:${tc(t.team)};"></span>${t.team}</div></td>
+      <td class="center">${t.p}</td>
+      <td class="center">${t.w}</td>
+      <td class="center">${t.d}</td>
+      <td class="center">${t.l}</td>
+      <td class="right">${t.f}</td>
+      <td class="right">${t.a}</td>
+      <td class="right">${diffHtml}</td>
+      <td class="right pts-cell">${t.pts}</td>
+      <td class="center"><div class="form-row" style="justify-content:center;">${buildFormHtml(t.form)}</div></td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  html += `<div style="margin-top:12px;font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;">
+    <span><span style="color:var(--green);">■</span> Finals positions</span>
+    <span>Form: most recent right →</span>
+    <span>Stats computed from R1–R${getRounds().filter(r=>r.m.some(m=>!m.upcoming)).slice(-1)[0]?.r||'?'}</span>
+  </div></div>`;
+
+  document.getElementById('tab-ladder').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: METRICS
+// ═══════════════════════════════════════════════════
+function renderMetrics() {
+  const stats = getStats();
+  const ladder = sortedLadder(stats);
+
+  // Sort by points scored
+  const byAttack = [...ladder].sort((a,b)=>b.f-a.f);
+  const byDefence = [...ladder].sort((a,b)=>a.a-b.a);
+  const byDiff = [...ladder].sort((a,b)=>b.diff-a.diff);
+
+  const maxF = byAttack[0].f;
+  const maxA = [...ladder].sort((a,b)=>b.a-a.a)[0].a;
+
+  function barRows(data, getter, maxVal, color) {
+    return data.map(t => {
+      const val = getter(t);
+      const pct = Math.round(val/maxVal*100);
+      const col = typeof color === 'function' ? color(t) : (color || tc(t.team));
+      return `<div class="bar-row">
+        <div class="bar-team">${t.team}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col};"></div></div>
+        <div class="bar-val">${typeof val === 'number' ? val : val}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Score distribution
+  const allM = allMatches(getRounds());
+  const scoreRanges = {'0–9':0,'10–19':0,'20–29':0,'30–39':0,'40–49':0,'50+':0};
+  allM.forEach(m => {
+    [m.hs,m.as].forEach(s => {
+      if (s<=9) scoreRanges['0–9']++;
+      else if (s<=19) scoreRanges['10–19']++;
+      else if (s<=29) scoreRanges['20–29']++;
+      else if (s<=39) scoreRanges['30–39']++;
+      else if (s<=49) scoreRanges['40–49']++;
+      else scoreRanges['50+']++;
+    });
+  });
+  const maxRange = Math.max(...Object.values(scoreRanges));
+
+  let html = `
+  <div class="g2 mb24">
+    <div>
+      <div class="sec mb16"><h2>⚔️ Total Points Scored</h2><div class="ln"></div><span class="badge badge-green">ATTACK</span></div>
+      <div class="card">${barRows(byAttack, t=>t.f, maxF, t=>tc(t.team))}</div>
+    </div>
+    <div>
+      <div class="sec mb16"><h2>🛡️ Points Conceded</h2><div class="ln"></div><span class="badge" style="background:rgba(231,76,60,.15);color:var(--red);">DEFENCE</span></div>
+      <div class="card">${barRows(byDefence, t=>t.a, maxA, t=>tc(t.team))}</div>
+    </div>
+  </div>
+
+  <div class="g2 mb24">
+    <div>
+      <div class="sec mb16"><h2>📈 Points Differential</h2><div class="ln"></div></div>
+      <div class="card">
+        ${[...ladder].sort((a,b)=>b.diff-a.diff).map(t => {
+          const val = t.diff;
+          const maxD = Math.max(...ladder.map(x=>Math.abs(x.diff)));
+          const pct = Math.round(Math.abs(val)/maxD*50);
+          const col = val >= 0 ? 'var(--green)' : 'var(--red)';
+          return `<div class="bar-row">
+            <div class="bar-team">${t.team}</div>
+            <div class="bar-track" style="position:relative;">
+              <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border);"></div>
+              <div class="bar-fill" style="width:${pct}%;margin-left:${val>=0?'50%':'calc(50% - '+pct+'%)'}%;background:${col};"></div>
+            </div>
+            <div class="bar-val" style="color:${col};">${val>=0?'+':''}${val}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="sec mb16"><h2>🎯 Score Distribution</h2><div class="ln"></div></div>
+      <div class="card">
+        <div style="margin-bottom:8px;font-size:11px;color:var(--muted);">Team scores across all ${allM.length} games</div>
+        ${Object.entries(scoreRanges).map(([range,count]) => `
+          <div class="bar-row">
+            <div class="bar-team">${range} pts</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxRange*100)}%;background:var(--blue);"></div></div>
+            <div class="bar-val">${count}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="sec mb16"><h2>📊 Win / Draw / Loss Breakdown</h2><div class="ln"></div></div>
+  <div class="card">
+    <div style="overflow-x:auto;">
+    <table class="ltable">
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th class="center">W%</th>
+          <th class="center">Avg Scored</th>
+          <th class="center">Avg Conceded</th>
+          <th class="center">Biggest Win</th>
+          <th class="center">Biggest Loss</th>
+          <th class="center">Draws</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${ladder.map(t => {
+          const results = t.results;
+          const wins = results.filter(r=>r.res==='W');
+          const losses = results.filter(r=>r.res==='L');
+          const bw = wins.length ? Math.max(...wins.map(r=>r.sc-r.oc)) : 0;
+          const bl = losses.length ? Math.max(...losses.map(r=>r.oc-r.sc)) : 0;
+          return `<tr>
+            <td><div class="team-cell"><span class="team-dot" style="background:${tc(t.team)};"></span>${t.team}</div></td>
+            <td class="center"><span style="font-weight:800;color:${t.pct>=50?'var(--green)':'var(--red)'};">${t.pct}%</span></td>
+            <td class="center">${t.avgF}</td>
+            <td class="center">${t.avgA}</td>
+            <td class="center" style="color:var(--green);">+${bw}</td>
+            <td class="center" style="color:var(--red);">-${bl}</td>
+            <td class="center">${t.d}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>`;
+
+  document.getElementById('tab-metrics').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: PROFILES
+// ═══════════════════════════════════════════════════
+function renderProfiles() {
+  const stats = getStats();
+  const ladder = sortedLadder(stats);
+
+  const cards = ladder.map((t,i) => {
+    const pos = i+1;
+    return `<div class="profile-card">
+      <div class="profile-hdr">
+        <div class="team-badge-lg" style="background:${tc(t.team)};">${initials(t.team)}</div>
+        <div>
+          <div class="profile-name">${t.team}</div>
+          <div class="profile-record">${pos}${pos===1?'st':pos===2?'nd':pos===3?'rd':'th'} · ${t.w}W ${t.d}D ${t.l}L</div>
+        </div>
+      </div>
+      <div class="profile-body">
+        <div class="pstat"><span class="pstat-label">Points</span><span class="pstat-val">${t.pts}</span></div>
+        <div class="pstat"><span class="pstat-label">Points For</span><span class="pstat-val">${t.f}</span></div>
+        <div class="pstat"><span class="pstat-label">Points Against</span><span class="pstat-val">${t.a}</span></div>
+        <div class="pstat"><span class="pstat-label">Differential</span><span class="pstat-val" style="color:${t.diff>=0?'var(--green)':'var(--red)'};">${t.diff>=0?'+':''}${t.diff}</span></div>
+        <div class="pstat"><span class="pstat-label">Avg Scored</span><span class="pstat-val">${t.avgF}</span></div>
+        <div class="pstat"><span class="pstat-label">Win Rate</span><span class="pstat-val">${t.pct}%</span></div>
+        <div style="margin-top:8px;font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Form (last 5)</div>
+        <div class="profile-form">${buildFormHtml(t.form)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tab-profiles').innerHTML = `<div class="profile-grid">${cards}</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: SCOUT REPORTS
+// ═══════════════════════════════════════════════════
+
+const HC_SCOUT = {
+  'Falcons':     {str:['Competition-leading attack (10 wins from 11 games)','Consistent scoring output across all rounds','Excellent defence — fewest losses in the comp','Strong form: 7+ win streak mid-season'],wk:['Vulnerable when pressed early (lost to Seagulls R1)','Must manage back-to-back heavy workloads'],how:['Push them hard in the first 20 minutes','Exploit any fatigue from travel to Port Moresby'],verdict:'The benchmark of the competition. Only Dolphins can match their class. Finals bound, likely minor premiers.'},
+  'WM Seagulls': {str:['Explosive attack — highest differential in the comp (+141)','Strong defensive line speed off the ruck','Won 8 of 12 — consistent throughout','Big win over Falcons (38-30) shows top-end quality'],wk:['One draw and 3 losses suggest some inconsistency','Can struggle against physical forward packs','Conceded 36 to Dolphins in R3'],how:['Get into their edge defence early','Test their halves under pressure in 2nd half'],verdict:'Possibly the most dangerous team in the comp. Their +141 differential is remarkable — if they click, they beat anyone.'},
+  'Dolphins':    {str:['Devastating recent form: 40-22, 52-20, 36-16 in R10-R12','Best mid-season surge of any team','High average points scored per game'],wk:['Shaky early in the season (lost R1, R3, drew R8)','Road trips to Port Moresby and Rockhampton take toll'],how:['Attack their edge early before they build momentum','Force them into low-completion sets'],verdict:'Flying under the radar but genuinely finals contenders. Their second-half of the season form is elite.'},
+  'Tigers':      {str:['Consistent top-4 performer throughout','Strong attack in big games (48-6 over Jets R3)','Good home record at Totally Workwear Stadium'],wk:['Back-to-back heavy defeats (R11-R12) are a concern','Struggled under the high ball in recent rounds'],how:['Apply early pressure — they can capitulate','Exploit their defensive edges'],verdict:'Reliable but showing cracks. Still a genuine top-4 team, but not infallible.'},
+  'Seagulls':    {str:['Big wins when on form (46-18 Cutters R6, 36-12 Magpies R5)','Strong home record at Preston Building Complex','Good draw percentage — hard to beat'],wk:['Inconsistent results (multiple draws, some big losses)','Lost 6-34 to Blackhawks R4'],how:['Force them into decision-making early','Target their errors — they can make costly mistakes'],verdict:'Capable of beating anyone, but inconsistency holds them back. A dangerous finals opponent.'},
+  'Blackhawks':  {str:['High draw rate — extremely resilient','Big wins in R12 (44-16 Tigers) and R13 (34-10 Jets)','Improving as the season progresses','Hard to beat — draw specialists'],wk:['Slow start to the season (0-30 in R1)','Inconsistent scoring output'],how:['Score early and build a buffer — they rarely get blown out','Avoid letting them play slow, controlled footy'],verdict:'The draw kings of the comp. Late-season form suggests they might just scrape into finals. A real danger team if they do.'},
+  'Capras':      {str:['Excellent home record at Aurizon Stadium','Strong defensive showing in most games','Good draw count — shows resilience'],wk:['Away form has been inconsistent','Loss to Clydesdales R13 is concerning'],how:['Attack away from home is their weakness','Push the pace — they prefer a slower game'],verdict:'Mid-table and fighting. Capable of spoiling on any given day, but unlikely to go deep.'},
+  'Jets':        {str:['Excellent in attacking mode (48-6 R3, 30-0 R1)','Good home record at Richardson Park','Beat Capras away in R9 (28-28 draw counts as tough)'],wk:['Recent losses suggest fatigue or form dip','Lost 10-34 to Blackhawks R13 badly'],how:['Use kick pressure to force errors','They can leak tries in bunches'],verdict:'A top-8 team but showing vulnerability. Their ceiling is very high; their floor is concerning.'},
+  'Cutters':     {str:['Huge win over Seagulls (46-18) shows attacking potential','Good defensive record mid-season','Home fortress at BB Print Stadium'],wk:['Away record is poor','Differential is negative — giving away too many points'],how:['Take them away from Mackay','Force them to play quick football'],verdict:'Solid finals contenders but unlikely to go all the way. Best used as a home-ground threat.'},
+  'Devils':      {str:['Good draw percentage — hard to put away','Big win over Clydesdales (42-10) in R2','Capable of big swings when motivated'],wk:['Inconsistent — have been both thrashed and thrash-ers','Poor form in recent rounds','Lost 12-32 to Falcons R11'],how:['Apply constant early pressure','Do not let them control the game speed'],verdict:'Unpredictable. Can beat a top-4 team or lose to a bottom-4. Hard to plan for.'},
+  'Pride':       {str:['Surprise wins early in the season','Good points for tally','Home crowd at Barlow Park (Cairns) is a factor'],wk:['Defence has been porous in recent rounds','Only 6 wins from 13 games'],how:['Their defence gives up tries in clusters','Push pace in second half when they tire'],verdict:'Pride by name, pride by nature — fighting every week, but finals looks unlikely. Could still cause an upset.'},
+  'Bears':       {str:['Good home record at UAA Park','Capable of big wins (38-22 v Devils, 42-4 v Hunters)'],wk:['Poor away record','Conceded heavily against top teams'],how:['Get them on the road','Apply forward dominance — they can be outmuscled'],verdict:'A middle-of-the-road team. Hard to beat at home, beatable away.'},
+  'Magpies':     {str:['Beat top teams on their day (31-22 Bears R11)','Good draw record — resilient'],wk:['Overall record not strong enough for finals push','Inconsistent'],how:['Target their defence which has been leaking points'],verdict:'Fighting hard but not finals material this year.'},
+  'Clydesdales': {str:['Surprise wins — beat Capras 34-10 R13, Seagulls 28-24 R9','Big home crowd at Toowoomba'],wk:['Biggest differential in the negative','Only 3 wins from 12 games','Blown out in multiple games (10-42, 20-52)'],how:['Attack them relentlessly — they struggle when chasing','Use their negative diff against them mentally'],verdict:'Bottom-4 but dangerous at home. Not a pushover on their day.'},
+  'Hunters':     {str:['Great home atmosphere in Port Moresby','Shock win over Jets in R6 (26-24)'],wk:['Worst record in the comp','Only 2 wins from 13 played','Heavy losses common'],how:['Simply execute your system — they struggle to sustain quality','Do not underestimate the Port Moresby atmosphere'],verdict:'The battlers of the comp. Port Moresby is always difficult to travel to, but Hunters need significant improvement.'},
+};
+
+
+function renderScout() {
+  const stats = getStats();
+  const ladder = sortedLadder(stats);
+  const scoutData = HC_SCOUT;
+
+  const cards = ladder.map(t => {
+    const sd = scoutData[t.team] || {str:['Good team'],wk:['Areas to improve'],how:['Play your game'],verdict:'Competitive team.'};
+    return `<div class="scout-card">
+      <div class="scout-hdr">
+        <div class="team-badge-lg" style="background:${tc(t.team)};width:44px;height:44px;">${initials(t.team)}</div>
+        <div class="scout-hdr-info">
+          <div class="scout-hdr-name">${t.team}</div>
+          <div class="scout-hdr-record">${t.w}W ${t.d}D ${t.l}L · ${t.pts} pts · Diff ${t.diff>=0?'+':''}${t.diff}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">Form</div>
+          <div class="form-row" style="justify-content:flex-end;">${buildFormHtml(t.form)}</div>
+        </div>
+      </div>
+      <div class="scout-body">
+        <div class="scout-section">
+          <div class="scout-stitle green-title">✅ Strengths</div>
+          ${sd.str.map(s=>`<div class="scout-item">${s}</div>`).join('')}
+        </div>
+        <div class="scout-section">
+          <div class="scout-stitle red-title">⚠️ Vulnerabilities</div>
+          ${sd.wk.map(s=>`<div class="scout-item">${s}</div>`).join('')}
+        </div>
+        <div class="scout-section" style="border-right:none;">
+          <div class="scout-stitle amber-title">🎯 How to Beat Them</div>
+          ${sd.how.map(s=>`<div class="scout-item">${s}</div>`).join('')}
+        </div>
+      </div>
+      <div class="scout-verdict"><strong>Analyst Verdict:</strong> ${sd.verdict}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tab-scout').innerHTML = cards;
+}
+
+// ═══════════════════════════════════════════════════
+// TAB / COMP SWITCHING
+// ═══════════════════════════════════════════════════
+function showTab(tab) {
+  TAB = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  const btns = document.querySelectorAll('.tab-btn');
+  const tabOrder = ['guide','hub','results','ladder','metrics','profiles','scout'];
+  const idx = tabOrder.indexOf(tab);
+  if (idx >= 0) btns[idx].classList.add('active');
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (TAB === 'guide') renderGuide();
+  else if (TAB === 'hub') renderHub();
+  else if (TAB === 'results') renderResults();
+  else if (TAB === 'ladder') renderLadder();
+  else if (TAB === 'metrics') renderMetrics();
+  else if (TAB === 'profiles') renderProfiles();
+  else if (TAB === 'scout') renderScout();
+}
+
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+renderHub();
+</script>
+</body>
+</html>

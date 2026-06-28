@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NRL 2026 — Ben Weeden Advanced Analytics</title>
+<style>
+:root{
+  --navy:#1A1A2E;--nrl:#006B3F;--accent:#2563EB;--gold:#F0C040;
+  --win:#D4EDDA;--wint:#155724;--loss:#FADBD8;--losst:#721C24;
+  --bye:#FFF9E6;--byet:#856404;--light:#F8F9FA;--mid:#252540;
+  --bord:#2A2A4A;--text:#CCD4E0;--white:#FFFFFF;--muted:#8899AA;
+  --bg:#0F0F1A;--card:#1E1E35;--card2:#161628;--green:#4ADE80;
+  --amber:#F0C040;--red:#F87171;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:13px}
+
+/* ── Header ── */
+header{background:linear-gradient(135deg,var(--navy) 0%,#0D2137 100%);padding:0 20px;border-bottom:3px solid var(--nrl);display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-badge{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--nrl),#004D2C);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:white;border:2px solid var(--gold)}
+.logo h1{font-size:14px;font-weight:800;color:white;letter-spacing:1px}
+.logo p{font-size:10px;color:var(--muted);margin-top:1px}
+.header-r{display:flex;align-items:center;gap:14px}
+.tag{background:var(--nrl);color:white;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.analyst{color:var(--gold);font-size:12px;font-weight:700}
+
+/* ── Nav ── */
+nav{background:#12122A;border-bottom:1px solid var(--bord);display:flex;gap:0;overflow-x:auto;padding:0 20px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:none;color:var(--muted);padding:12px 16px;cursor:pointer;font-size:12px;font-weight:700;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.3px}
+nav button:hover{color:white}
+nav button.active{color:white;border-bottom-color:var(--nrl)}
+
+/* ── Main ── */
+main{padding:20px;max-width:1440px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:18px;margin-bottom:18px}
+.card-h{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.card-h span{font-size:15px}
+
+/* ── Tiles ── */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.tile{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:16px;text-align:center;transition:transform .15s,border-color .15s;cursor:default}
+.tile:hover{transform:translateY(-2px);border-color:var(--nrl)}
+.tile-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.tile-value{font-size:26px;font-weight:900;color:white;margin-bottom:3px}
+.tile-sub{font-size:11px;color:var(--gold);font-weight:700}
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto;border-radius:8px}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--navy);color:var(--muted);padding:9px 11px;text-align:center;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;position:sticky;top:0;white-space:nowrap}
+thead th:first-child{text-align:left}
+tbody tr{border-bottom:1px solid #1E1E38;transition:background .1s}
+tbody tr:hover{background:#1C1C32}
+tbody td{padding:9px 11px;text-align:center;color:var(--text)}
+tbody td:first-child{text-align:left;font-weight:700;color:white}
+.w{background:var(--win);color:var(--wint);padding:2px 9px;border-radius:10px;font-weight:800;font-size:11px}
+.l{background:var(--loss);color:var(--losst);padding:2px 9px;border-radius:10px;font-weight:800;font-size:11px}
+.b{background:var(--bye);color:var(--byet);padding:2px 9px;border-radius:10px;font-weight:800;font-size:11px}
+
+/* ── Rating bar ── */
+.rbar{display:flex;align-items:center;gap:7px;justify-content:center}
+.rbar-bg{flex:1;height:5px;background:#252545;border-radius:3px;max-width:70px}
+.rbar-fill{height:5px;border-radius:3px}
+.rnum{font-weight:800;font-size:13px;min-width:30px}
+
+/* ── Ranks ── */
+.r1{color:var(--gold);font-size:15px;font-weight:900}
+.r2{color:#C0C0C0;font-weight:800}
+.r3{color:#CD7F32;font-weight:800}
+.rn{color:var(--muted);font-weight:700}
+
+/* ── Team chip ── */
+.chip{display:inline-flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ── Match cards ── */
+.match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:14px}
+.mc{background:var(--card);border:1px solid var(--bord);border-radius:12px;overflow:hidden;transition:transform .15s}
+.mc:hover{transform:translateY(-2px)}
+.mc-head{background:var(--navy);padding:7px 14px;font-size:10px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.mc-body{padding:14px}
+.mc-teams{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mc-team{text-align:center;flex:1}
+.mc-tname{font-size:12px;font-weight:800;color:white;margin-bottom:3px}
+.mc-tres{font-size:10px;color:var(--muted)}
+.mc-score{font-size:30px;font-weight:900;min-width:70px;text-align:center;letter-spacing:-1px}
+.mc-score.win{color:var(--green)}
+.mc-score.lose{color:var(--muted)}
+.mc-sep{font-size:16px;color:var(--muted);margin:0 2px}
+.mc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.mc-stat{text-align:center}
+.mc-stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.mc-stat-v{display:flex;justify-content:space-between;font-size:12px;font-weight:700}
+.mc-stat-v span.hi{color:var(--green)}
+
+/* ── ETxP bar ── */
+.etxp-bars{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;font-size:10px}
+.etxp-row{display:flex;align-items:center;gap:6px}
+.etxp-label{width:40px;text-align:right;color:var(--muted)}
+.etxp-bg{flex:1;height:8px;background:#252545;border-radius:4px;overflow:hidden}
+.etxp-fill{height:8px;border-radius:4px}
+.etxp-val{min-width:28px;font-weight:800;font-size:10px}
+
+/* ── Profiles ── */
+.profiles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.pcard{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:16px;transition:transform .15s}
+.pcard:hover{transform:translateY(-2px)}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pswatch{width:42px;height:42px;border-radius:10px;flex-shrink:0}
+.pname{font-size:14px;font-weight:800;color:white}
+.pres{font-size:11px;margin-top:2px}
+.pratings{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.prating{text-align:center}
+.prl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.prv{font-size:20px;font-weight:900}
+.prv.hi{background:linear-gradient(135deg,var(--nrl),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.prv.md{background:linear-gradient(135deg,#F59E0B,#FCD34D);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.prv.lo{background:linear-gradient(135deg,#EF4444,#F87171);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.adv-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}
+.am{background:var(--card2);border-radius:7px;padding:8px}
+.am-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.am-v{font-size:14px;font-weight:800;color:white}
+.insight{font-size:11px;line-height:1.5}
+.insight-row{display:flex;gap:7px;margin-bottom:5px}
+.insight-icon{flex-shrink:0;font-size:13px}
+.insight-txt{color:#AAB8CC}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px}
+.ms{background:var(--card2);border-radius:6px;padding:6px 4px;text-align:center}
+.ms-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.ms-v{font-size:12px;font-weight:800;color:white;margin-top:1px}
+
+/* ── Advanced Metrics ── */
+.adv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px}
+.adv-card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:16px}
+.adv-card-h{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.adv-card-icon{font-size:20px}
+.adv-card-title{font-size:12px;font-weight:800;color:white}
+.adv-card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.adv-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1E1E38}
+.adv-row:last-child{border-bottom:none}
+.adv-rank{font-size:11px;color:var(--muted);min-width:16px}
+.adv-team{font-size:12px;font-weight:700;color:white;flex:1}
+.adv-bar-bg{width:80px;height:6px;background:#252545;border-radius:3px;overflow:hidden}
+.adv-bar-fill{height:6px;border-radius:3px}
+.adv-val{font-size:12px;font-weight:800;min-width:42px;text-align:right}
+
+/* ── Player section ── */
+.player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.player-card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:14px;transition:transform .15s,border-color .15s}
+.player-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.pc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pc-swatch{width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:white}
+.pc-name{font-size:13px;font-weight:800;color:white}
+.pc-pos{font-size:10px;color:var(--muted);margin-top:2px}
+.pc-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.pcm{text-align:center;background:var(--card2);border-radius:6px;padding:7px 4px}
+.pcm-l{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.pcm-v{font-size:15px;font-weight:900;color:white}
+.pcm-v.pos{color:var(--green)}
+.pcm-v.neg{color:var(--red)}
+.pc-rating{display:flex;align-items:center;gap:8px;padding:8px;background:var(--card2);border-radius:8px}
+.pc-rating-label{font-size:10px;color:var(--muted);flex:1}
+.pc-rating-val{font-size:18px;font-weight:900}
+
+/* ── Pizza/Radar chart ── */
+.pizza-wrap{display:flex;justify-content:center;margin:10px 0}
+svg.pizza{overflow:visible}
+
+/* ── AI section ── */
+.ai-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.ai-card{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:18px}
+.ai-card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.ai-icon-circle{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ai-card-title{font-size:14px;font-weight:800;color:white;margin-bottom:3px}
+.ai-card-badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;display:inline-block}
+.ai-body{font-size:12px;color:#AAB8CC;line-height:1.6;margin-bottom:10px}
+.ai-metrics-used{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.ai-chip{font-size:9px;background:#1A2040;border:1px solid #2A3A60;border-radius:6px;padding:3px 8px;color:#8899CC;font-weight:700}
+.ai-formula{background:var(--card2);border-radius:8px;padding:10px;margin-top:8px;font-family:'Courier New',monospace;font-size:11px;color:#6CF;border-left:3px solid var(--accent)}
+
+/* ── Controls ── */
+.controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search{background:var(--card2);border:1px solid var(--bord);border-radius:8px;padding:7px 12px;color:white;font-size:12px;width:200px;outline:none}
+.search:focus{border-color:var(--nrl)}
+.fbtn{background:var(--card2);border:1px solid var(--bord);border-radius:8px;padding:7px 12px;color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;font-weight:700}
+.fbtn:hover,.fbtn.active{background:var(--nrl);color:white;border-color:var(--nrl)}
+
+/* ── FPV section ── */
+.fpv-explainer{background:linear-gradient(135deg,#0D1830,#1A2A1A);border:1px solid #2A4A2A;border-radius:12px;padding:16px;margin-bottom:18px}
+.fpv-explainer h3{color:var(--green);font-size:13px;margin-bottom:6px}
+.fpv-explainer p{color:#AAB8CC;font-size:12px;line-height:1.6}
+
+/* ── Comparison ── */
+.comparison-table tbody tr.above{background:#0D2010}
+.comparison-table tbody tr.below{background:#200D10}
+
+/* ── Scout Reports ── */
+.scout-card{background:var(--card);border:1px solid var(--bord);border-radius:14px;overflow:hidden;margin-bottom:20px;transition:box-shadow .2s}
+.scout-card:hover{box-shadow:0 4px 24px #00000040}
+.scout-header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.scout-team-info{display:flex;align-items:center;gap:12px}
+.scout-swatch{width:48px;height:48px;border-radius:12px;flex-shrink:0}
+.scout-name{font-size:16px;font-weight:900;color:white}
+.scout-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.scout-result-badge{font-size:22px;font-weight:900;padding:6px 18px;border-radius:10px}
+.scout-body{padding:16px 20px}
+.scout-panels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.scout-panel{background:var(--card2);border-radius:10px;padding:12px}
+.scout-panel-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.scout-stat-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1E1E38}
+.scout-stat-row:last-child{border-bottom:none}
+.scout-stat-label{font-size:10px;color:var(--muted)}
+.scout-stat-value{font-size:11px;font-weight:800}
+.scout-rating-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.scout-rating-bg{flex:1;height:8px;background:#252545;border-radius:4px;overflow:hidden}
+.scout-rating-fill{height:8px;border-radius:4px;transition:width .3s}
+.scout-rating-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;min-width:52px}
+.scout-rating-val{font-size:13px;font-weight:900;min-width:28px;text-align:right}
+.scout-players{margin-bottom:14px}
+.scout-players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.scout-player{background:var(--card2);border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px}
+.scout-player-swatch{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white;flex-shrink:0}
+.scout-player-name{font-size:11px;font-weight:800;color:white}
+.scout-player-pos{font-size:9px;color:var(--muted)}
+.scout-player-stats{display:flex;gap:8px;margin-top:3px}
+.scout-player-stat{font-size:9px;color:#AAB8CC}
+.scout-player-stat span{color:white;font-weight:700}
+.scout-tactical{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.scout-tac-box{border-radius:10px;padding:12px}
+.scout-tac-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.scout-tac-item{font-size:11px;line-height:1.5;margin-bottom:5px;display:flex;gap:6px}
+.scout-tac-dot{flex-shrink:0;margin-top:3px;font-size:10px}
+.scout-verdict{margin-top:12px;padding:12px;background:linear-gradient(135deg,#0A1520,#121A28);border-radius:10px;border-left:3px solid var(--nrl)}
+.scout-verdict-title{font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.scout-verdict-text{font-size:12px;color:#C0CCE0;line-height:1.7}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  main{padding:10px}
+  .match-grid,.profiles-grid,.player-grid,.adv-grid,.ai-grid{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">NRL</div>
+    <div>
+      <h1>NRL 2026 ADVANCED ANALYTICS</h1>
+      <p>R1–R16 Season · Stats Perform · ETxP · RMOE · Try Zone AI</p>
+    </div>
+  </div>
+  <div class="header-r">
+    <span class="tag">R1–R16 · 2026</span>
+    <span class="analyst">Ben Weeden Analytics</span>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="show('guide',this)">📖 How to Use</button>
+  <button onclick="show('overview',this)">📊 Intelligence Hub</button>
+  <button onclick="show('results',this)">📅 R1–R16 Results</button>
+  <button onclick="show('ladder',this)">🏆 Season Ladder</button>
+  <button onclick="show('tryzone',this)">🗺️ Try Zone AI</button>
+  <button onclick="show('advanced',this)">⚡ Advanced Metrics</button>
+  <button onclick="show('players',this)">👤 Player Spotlight</button>
+  <button onclick="show('attack',this)">🎯 Attack</button>
+  <button onclick="show('defence',this)">🛡️ Defence</button>
+  <button onclick="show('profiles',this)">🔍 Team Profiles</button>
+  <button onclick="show('scout',this)">📋 Scout Reports</button>
+  <button onclick="show('ai',this)">🤖 AI Methodology</button>
+</nav>
+
+<main>
+
+<!-- ════════ HOW TO USE / GLOSSARY ════════ -->
+<div id="page-guide" class="page active">
+
+  <!-- Welcome banner -->
+  <div style="background:linear-gradient(135deg,#0A1528,#0D2018);border:1px solid var(--nrl);border-radius:14px;padding:28px 32px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:var(--nrl);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📋</div>
+      <div>
+        <h2 style="color:white;font-size:17px;font-weight:900;letter-spacing:.3px">Ben Weeden — NRL Advanced Analytics</h2>
+        <p style="color:var(--muted);font-size:11px;margin-top:2px">Round 1 · 2026 · Powered by Opta/Stats Perform + NRL.com</p>
+      </div>
+    </div>
+    <p style="color:#C0CCE0;font-size:13px;line-height:1.8;max-width:860px">This dashboard goes beyond anything on NRL.com. It uses the same analytical frameworks as Champion Data and Stats Perform — field position modelling, expected points, run efficiency above expectation — applied to every Round 1 game. Use the tabs at the top to navigate. This page explains what each tab shows and what every metric means.</p>
+  </div>
+
+  <!-- Tab guide + colour key side by side -->
+  <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;margin-bottom:18px;align-items:start">
+
+    <div class="card" style="margin-bottom:0">
+      <div class="card-h"><span>🗂️</span>WHAT EACH TAB DOES</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">📊 Intelligence Hub</span><span style="font-size:12px;color:#C0CCE0">Start here. Key R1 findings, FPCR chart, ruck speed rankings, and 6 deep analyst insights that go beyond the scoreline.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">📅 Results + ETxP</span><span style="font-size:12px;color:#C0CCE0">All 8 Round 1 matches with field position bars. See which team earned more scoring chances — and who actually converted them.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">🏆 Ladder</span><span style="font-size:12px;color:#C0CCE0">Standard ladder with ETxP and FPCR added — reveals which teams' positions are misleading based on how they convert field position.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">⚡ Advanced Metrics</span><span style="font-size:12px;color:#C0CCE0">8 ranked metric leaderboards — ETxP, FPCR, Repeat Sets, Ruck Speed, Red Zone PTBs, Pressure Accumulation and more. The page coaches haven't seen.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">👤 Player Spotlight</span><span style="font-size:12px;color:#C0CCE0">24 key R1 players with RMOE (run efficiency above expectation), Error Rate, Involvement Rate, Try Contribution. Filter by backs/forwards/spine.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">🎯 Attack</span><span style="font-size:12px;color:#C0CCE0">Teams ranked by attack rating with ETxP and FPCR integrated — separates teams that earn field position from those that convert it.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">🛡️ Defence</span><span style="font-size:12px;color:#C0CCE0">Defence ratings with missed tackle severity classification. Not just how many missed — but the risk level of where they occurred.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;border-bottom:1px solid #1E1E38;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">🔍 Team Profiles</span><span style="font-size:12px;color:#C0CCE0">One card per team with strengths, concerns, advanced metrics, mini stats. Filter by win/loss/bye. Best tab for individual team prep.</span></div>
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:0;padding:9px 0"><span style="font-size:12px;font-weight:800;color:var(--gold)">🤖 AI Methodology</span><span style="font-size:12px;color:#C0CCE0">The analytical framework behind the dashboard — what each model does, how you'd use it as a club analyst, and what's on the roadmap.</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-h"><span>🎨</span>COLOUR GUIDE</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#4ADE80;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Green — elite / best</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#F0C040;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Amber — average</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#F87171;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Red — concern</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#D4EDDA;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Green row — win</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#FADBD8;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Red row — loss</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#FFF9E6;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Yellow row — BYE</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:14px;height:14px;border-radius:3px;background:#60A5FA;flex-shrink:0"></div><span style="font-size:11px;color:#C0CCE0">Blue — ETxP/FP data</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-h"><span>📡</span>DATA SOURCES</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:11px;color:#9AAABB;line-height:1.4">
+          <div><span style="color:white;font-weight:700">📄 Opta/Stats Perform</span><br>8-page match PDFs per game</div>
+          <div><span style="color:white;font-weight:700">🌐 NRL.com</span><br>Player stats, carries, run metres</div>
+          <div><span style="color:white;font-weight:700">🔬 Rugby League Eye Test</span><br>ETxP values, RMOE framework</div>
+          <div><span style="color:white;font-weight:700">📊 ZeroTackle</span><br>Season player run metre rankings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Glossary as clean table -->
+  <div class="card">
+    <div class="card-h"><span>📐</span>METRIC GLOSSARY</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="text-align:left;width:110px">ABBREVIATION</th><th style="text-align:left">FULL NAME</th><th style="text-align:left">WHAT IT MEASURES</th><th style="text-align:left;width:100px">BENCHMARK</th></tr></thead>
+        <tbody>
+          <tr><td><span style="color:#60A5FA;font-weight:900;font-family:monospace">ETxP</span></td><td style="text-align:left">Expected Points (Field Position Value)</td><td style="text-align:left;color:#AAB8CC">Points a team <em>should</em> score based on where on the field they had the ball — accounts for tackle number, time and margin.</td><td style="text-align:left;color:#AAB8CC">Higher = more dangerous field position earned</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:900;font-family:monospace">FPCR</span></td><td style="text-align:left">Field Position Conversion Rate</td><td style="text-align:left;color:#AAB8CC">Actual points ÷ ETxP. Shows how efficiently a team converts the field position they earn into actual points scored.</td><td style="text-align:left;color:#AAB8CC">1.0 = average · &gt;2.5 = elite · &lt;0.8 = wasted</td></tr>
+          <tr><td><span style="color:#F59E0B;font-weight:900;font-family:monospace">RMOE</span></td><td style="text-align:left">Run Metres Over Expected</td><td style="text-align:left;color:#AAB8CC">Player's metres per carry minus what's expected for their position. Removes role bias so props and halves can be compared fairly.</td><td style="text-align:left;color:#AAB8CC">Positive = above role expectation</td></tr>
+          <tr><td><span style="color:#60A5FA;font-weight:900;font-family:monospace">xPts / xP</span></td><td style="text-align:left">Expected Points (Momentum)</td><td style="text-align:left;color:#AAB8CC">Attacking threat generated per set — from the Opta momentum model. Different to ETxP which is purely field zone based.</td><td style="text-align:left;color:#AAB8CC">Higher = more consistent pressure in attack</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:900;font-family:monospace">Net Err Diff</span></td><td style="text-align:left">Net Error Differential</td><td style="text-align:left;color:#AAB8CC">Opponent errors minus your own. Teams with positive net error diff win ~72% of NRL games — one of the best single predictors of outcome.</td><td style="text-align:left;color:#AAB8CC">Positive = better ball security than opposition</td></tr>
+          <tr><td><span style="color:#F59E0B;font-weight:900;font-family:monospace">Rep Sets</span></td><td style="text-align:left">Repeat Sets Earned</td><td style="text-align:left;color:#AAB8CC">How many extra attacking sets a team earned via 6-agains or opposition kicks going dead. R1 2026 avg = 8.5/game (up from 4.6 in 2025).</td><td style="text-align:left;color:#AAB8CC">Sharks R1: 22 → 7 of 9 tries from them</td></tr>
+          <tr><td><span style="color:#F87171;font-weight:900;font-family:monospace">Red Zone PTBs</span></td><td style="text-align:left">Red Zone Play-the-Balls</td><td style="text-align:left;color:#AAB8CC">Play-the-balls inside the opponent's 20m line — the highest-value attacking territory. Volume shows who's actually threatening the tryline.</td><td style="text-align:left;color:#AAB8CC">Cowboys: 55 PTBs, 18 pts — catastrophic waste</td></tr>
+          <tr><td><span style="color:#60A5FA;font-weight:900;font-family:monospace">PTB / Ruck Spd</span></td><td style="text-align:left">Play-the-Ball Speed (seconds)</td><td style="text-align:left;color:#AAB8CC">Average seconds from tackle completion to play-the-ball. The strongest single predictor of NRL match outcome — faster ruck = more sets, less defence reset time.</td><td style="text-align:left;color:#AAB8CC">Fast: &lt;3.45s · Slow: &gt;3.75s</td></tr>
+          <tr><td><span style="color:#A78BFA;font-weight:900;font-family:monospace">Set Ctrl</span></td><td style="text-align:left">Set Control Score (0–10)</td><td style="text-align:left;color:#AAB8CC">Composite: completion %, inverse errors, repeat sets earned. How well a team managed their possession and generated extra sets.</td><td style="text-align:left;color:#AAB8CC">8.0+ = elite set management</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:900;font-family:monospace">Press Acc</span></td><td style="text-align:left">Pressure Accumulation Score</td><td style="text-align:left;color:#AAB8CC">Repeat sets × 2 + inverse penalty count. Measures sustained pressure generated — repeat sets compound because the defence never gets a rest.</td><td style="text-align:left;color:#AAB8CC">Sharks highest R1 at 52</td></tr>
+          <tr><td><span style="color:#F59E0B;font-weight:900;font-family:monospace">Def Conv</span></td><td style="text-align:left">Defensive Conversion Ratio</td><td style="text-align:left;color:#AAB8CC">ETxP conceded ÷ points given up. Higher = defence held firm vs quality chances. Separates lucky defending from genuinely strong defence.</td><td style="text-align:left;color:#AAB8CC">Panthers: 8.27 ETxP conceded, 0 pts allowed</td></tr>
+          <tr><td><span style="color:#60A5FA;font-weight:900;font-family:monospace">Gainline M</span></td><td style="text-align:left">Gainline Metres</td><td style="text-align:left;color:#AAB8CC">Run metres gained past the original line of scrimmage. Filters out short/negative carries — better measure of forward dominance than total run metres.</td><td style="text-align:left;color:#AAB8CC">Bulldogs best R1: 1,844m gainline</td></tr>
+          <tr><td><span style="color:#F87171;font-weight:900;font-family:monospace">Dom Tckl</span></td><td style="text-align:left">Dominant Tackles</td><td style="text-align:left;color:#AAB8CC">Tackles that drive the carrier backwards, forcing a slow PTB. Both a defensive win and a forward dominance indicator.</td><td style="text-align:left;color:#AAB8CC">Fonua-Blake (Sharks): 6 R1</td></tr>
+          <tr><td><span style="color:#34D399;font-weight:900;font-family:monospace">Eff Tckl%</span></td><td style="text-align:left">Effective Tackle %</td><td style="text-align:left;color:#AAB8CC">Completed tackles ÷ (completed + missed) × 100. Above 90% = elite. Below 85% = systemic problem worth addressing in the video room.</td><td style="text-align:left;color:#AAB8CC">Elite: 90%+ · Problem: &lt;85%</td></tr>
+          <tr><td><span style="color:#F59E0B;font-weight:900;font-family:monospace">Error Rate</span></td><td style="text-align:left">Ball Touches per Error</td><td style="text-align:left;color:#AAB8CC">Carries ÷ errors. Higher = more reliable. Accounts for volume — a player with 30 carries and 2 errors is more reliable than 10 carries and 1 error.</td><td style="text-align:left;color:#AAB8CC">20+ = very reliable ball carrier</td></tr>
+          <tr><td><span style="color:#A78BFA;font-weight:900;font-family:monospace">Try Contrib</span></td><td style="text-align:left">Try Contribution</td><td style="text-align:left;color:#AAB8CC">Tries + (try assists × 0.5). Single number capturing both direct tries and assists, weighted to value scoring higher than facilitating.</td><td style="text-align:left;color:#AAB8CC">Trindall: 0T+3TA = 1.5 contrib</td></tr>
+          <tr><td><span style="color:#AAB8CC;font-weight:900;font-family:monospace">W / L / BYE</span></td><td style="text-align:left">Win / Loss / Bye</td><td style="text-align:left;color:#AAB8CC">Match result. Green row = win, red row = loss, yellow row = bye (Wests Tigers had Round 1 bye).</td><td style="text-align:left;color:#AAB8CC">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════ OVERVIEW ════════ -->
+<div id="page-overview" class="page">
+  <div class="tiles" id="hub-tiles"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+    <div class="card">
+      <div class="card-h"><span>⚡</span>FIELD POSITION CONVERSION — TOP 5</div>
+      <div id="fpcr-top"></div>
+      <div style="margin-top:10px;padding:10px;background:var(--card2);border-radius:8px;font-size:11px;color:var(--muted)">
+        <strong style="color:var(--gold)">FPCR</strong> = Actual Points ÷ Field Position Value (ETxP). Score >2.5 = exceptional conversion. Average NRL team = 1.0.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span>🕐</span>RUCK SPEED vs OUTCOME</div>
+      <div id="ruck-speed-chart"></div>
+      <div style="margin-top:10px;padding:10px;background:var(--card2);border-radius:8px;font-size:11px;color:var(--muted)">
+        PTB (play-the-ball) speed in seconds. Research confirms faster ruck is the <strong style="color:var(--gold)">strongest predictor</strong> of NRL match outcome. R1 correlation shown below.
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><span>🔬</span>ANALYST INSIGHTS — ROUND 1 KEY FINDINGS</div>
+    <div id="analyst-insights"></div>
+  </div>
+</div>
+
+<!-- ════════ RESULTS R1-R16 ════════ -->
+<div id="page-results" class="page">
+  <div style="background:linear-gradient(135deg,#0A1528,#0D2018);border:1px solid var(--nrl);border-radius:12px;padding:16px 20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div>
+        <h2 style="color:white;font-size:15px;font-weight:900">📅 NRL 2026 Results — Rounds 1–16</h2>
+        <p style="color:var(--muted);font-size:11px;margin-top:2px">Select a round to view match results. R1 includes advanced ETxP/FPCR overlay.</p>
+      </div>
+      <div id="round-title" style="font-size:13px;font-weight:800;color:var(--gold)">Round 1 — Las Vegas</div>
+    </div>
+    <div id="round-selector" class="controls" style="flex-wrap:wrap;gap:5px;margin:0"></div>
+  </div>
+  <div id="round-byes"></div>
+  <div class="match-grid" id="matches-grid"></div>
+</div>
+
+<!-- ════════ LADDER ════════ -->
+<div id="page-ladder" class="page">
+  <div class="card">
+    <div class="card-h"><span>🏆</span>2026 NRL LADDER — AFTER ROUND 16 (R1–R16 COMPUTED)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th style="text-align:left">TEAM</th><th>GP</th><th>W</th><th>L</th><th>D</th><th>PF</th><th>PA</th><th>DIFF</th><th>PTS</th><th>FINALS</th></tr></thead>
+        <tbody id="ladder-body"></tbody>
+      </table>
+    </div>
+    <div style="padding:10px;font-size:10px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap">
+      <span style="color:var(--gold)">🥇 Top 4 = home finals</span>
+      <span style="color:var(--green)">✅ Top 8 = finals</span>
+      <span style="color:var(--red)">❌ Outside top 8</span>
+      <span>Computed from all R1–R16 match results</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ TRY ZONE AI ════════ -->
+<div id="page-tryzone" class="page">
+  <div style="background:linear-gradient(135deg,#0A1528,#1A0A28);border:1px solid #4A2A6A;border-radius:12px;padding:18px 22px;margin-bottom:18px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="font-size:28px">🗺️</div>
+      <div>
+        <h2 style="color:white;font-size:15px;font-weight:900">Try Zone Analysis — Attacking & Defensive Patterns R1–R16</h2>
+        <p style="color:var(--muted);font-size:11px;margin-top:2px">AI-estimated LHS / Middle / RHS try breakdown based on team style, personnel and field position data</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px">
+      <span style="color:#6CF">◀ LHS = Left-hand side of attack (from attacking team's perspective)</span>
+      <span style="color:var(--green)">■ MID = Through the middle (dummy-half, short-side wedge)</span>
+      <span style="color:var(--amber)">RHS ▶ = Right-hand side (typically halfback-preferred in modern NRL)</span>
+    </div>
+  </div>
+  <!-- Summary Table -->
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-h"><span>📊</span>TRY ZONE SUMMARY — ALL 17 TEAMS</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">TEAM</th>
+          <th style="color:#6CF">SCORED LHS</th>
+          <th style="color:var(--green)">SCORED MID</th>
+          <th style="color:var(--amber)">SCORED RHS</th>
+          <th>TOTAL</th>
+          <th>FAV SIDE</th>
+          <th style="color:var(--red)">CONCEDED LHS</th>
+          <th style="color:var(--red)">CONCEDED MID</th>
+          <th style="color:var(--red)">CONCEDED RHS</th>
+          <th style="color:var(--red)">TOTAL</th>
+          <th style="color:var(--red)">VULN SIDE</th>
+        </tr></thead>
+        <tbody id="tryzone-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- AI Cards per team -->
+  <div class="card-h" style="margin-bottom:12px"><span>🤖</span>AI BREAKDOWN — PER TEAM ATTACKING & DEFENSIVE ZONE ANALYSIS</div>
+  <div class="ai-grid" id="tryzone-cards"></div>
+</div>
+
+<!-- ════════ ADVANCED METRICS ════════ -->
+<div id="page-advanced" class="page">
+  <div class="card" style="background:linear-gradient(135deg,#0A0A20,#1A1A35);border-color:#3A3A5A;margin-bottom:18px">
+    <div class="card-h"><span>⚡</span>ELITE TEAM ANALYTICS — ROUND 1</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6">These metrics go beyond standard NRL website stats. They're the frameworks used by Champion Data analysts, Stats Perform, and the top independent NRL analytics operations. Each metric is context-adjusted and possession-normalised where applicable.</p>
+  </div>
+  <div class="adv-grid" id="adv-grid-1"></div>
+  <div class="adv-grid" id="adv-grid-2"></div>
+  <div class="card">
+    <div class="card-h"><span>📊</span>FULL ADVANCED METRICS TABLE</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left">TEAM</th>
+            <th>FPV (ETxP)</th>
+            <th>FPCR</th>
+            <th>NET ERR DIFF</th>
+            <th>REPEAT SETS</th>
+            <th>RED ZONE PTBs</th>
+            <th>RUCK SPEED</th>
+            <th>SET CTRL</th>
+            <th>PRESS ACC</th>
+            <th>DEF CONVERSION</th>
+          </tr>
+        </thead>
+        <tbody id="adv-full-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:10px;color:var(--muted)">
+      <div><strong style="color:var(--gold)">FPV</strong> — Field Position Value (ETxP). Expected points from field position gained, accounting for field zone, tackle number and game state.</div>
+      <div><strong style="color:var(--gold)">FPCR</strong> — Field Position Conversion Rate. Actual points scored ÷ FPV. >2.5 = exceptional; <0.8 = poor conversion.</div>
+      <div><strong style="color:var(--gold)">Net Err Diff</strong> — Opponent errors minus own errors. Positive = better ball control than opposition.</div>
+      <div><strong style="color:var(--gold)">Red Zone PTBs</strong> — Play-the-balls inside opponent's 20m. Highest-value attacking territory.</div>
+      <div><strong style="color:var(--gold)">Ruck Speed</strong> — Avg seconds from tackle to play-the-ball. Lower = faster ruck. Strongest predictor of match outcome.</div>
+      <div><strong style="color:var(--gold)">Set Ctrl Score</strong> — Composite: completion %, error count, repeat sets earned. Weighted for field position.</div>
+      <div><strong style="color:var(--gold)">Press Acc</strong> — Pressure Accumulation Score. Repeat sets earned × 2 + penalties awarded. Measures sustained pressure generation.</div>
+      <div><strong style="color:var(--gold)">Def Conversion</strong> — Defensive efficiency: FPV conceded ÷ points conceded. Higher = better defence under pressure.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PLAYER SPOTLIGHT ════════ -->
+<div id="page-players" class="page">
+  <div class="card" style="background:linear-gradient(135deg,#0A0A20,#1A1A35);border-color:#3A3A5A;margin-bottom:18px">
+    <div class="card-h"><span>👤</span>PLAYER SPOTLIGHT — ROUND 1 KEY PERFORMERS</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.6">Advanced player metrics derived from Stats Perform match reports and NRL.com data. <strong style="color:var(--gold)">RMOE</strong> (Run Metres Over Expected) adjusts for position, carry count and field location. <strong style="color:var(--gold)">Error Rate</strong> = ball touches per error (higher = more reliable). <strong style="color:var(--gold)">Involvement Rate</strong> = % of team plays where player ran or tackled.</p>
+  </div>
+  <div class="controls">
+    <input class="search" id="player-search" oninput="filterPlayers()" placeholder="🔍 Search player...">
+    <button class="fbtn active" onclick="filterByPos('ALL')">All Positions</button>
+    <button class="fbtn" onclick="filterByPos('back')">Backs</button>
+    <button class="fbtn" onclick="filterByPos('forward')">Forwards</button>
+    <button class="fbtn" onclick="filterByPos('spine')">Spine</button>
+  </div>
+  <div class="player-grid" id="player-grid"></div>
+</div>
+
+<!-- ════════ ATTACK ════════ -->
+<div id="page-attack" class="page">
+  <!-- Season Scoring Summary -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span>🎯</span>SEASON ATTACK RANKINGS — R1–R16 AVERAGES</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th style="text-align:left">TEAM</th>
+          <th>GP</th><th>AVG PF/GAME</th><th>TOTAL PF</th>
+          <th style="color:var(--green)">BEST</th><th style="color:var(--red)">WORST</th>
+          <th>50+ GAMES</th><th>≤12 GAMES</th><th>LAST 5 FORM</th>
+        </tr></thead>
+        <tbody id="atk-season-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);padding:6px 10px;background:var(--card2);border-radius:6px">
+      <strong style="color:var(--gold)">Avg PF/Game:</strong> ≥28 = Elite 🟢 · 22–27 = Good 🟡 · &lt;22 = Underperforming 🔴 &nbsp;|&nbsp; <strong>50+ Games</strong> = dominant wins &nbsp;|&nbsp; <strong>≤12 Games</strong> = scoring droughts
+    </div>
+  </div>
+  <!-- Round-by-round grid -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span>📅</span>POINTS SCORED — ROUND BY ROUND (ALL 17 TEAMS)</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Teams ordered by ladder position. 🟢 W = team won that game · 🔴 L = team lost · 🟡 BYE</div>
+    <div class="tbl-wrap" id="atk-roundgrid"></div>
+  </div>
+  <!-- R1 Advanced Detail -->
+  <div class="card">
+    <div class="card-h"><span>⚡</span>ROUND 1 ADVANCED ATTACK METRICS — ETxP / FPCR DEEP DIVE</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Detailed field position and efficiency metrics from R1 Stats Perform data only</div>
+    <div class="controls"><input class="search" id="atk-search" oninput="filterTbl('atk-body',this.value)" placeholder="🔍 Search team..."></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th style="text-align:left">TEAM</th><th>ATTACK RTG</th><th>FPV (ETxP)</th><th>FPCR</th><th>RUN M</th><th>GAINLINE</th><th>LINE BRK</th><th>TRIES</th><th>COMPL%</th><th>xPTS</th><th>RED ZONE PTBs</th></tr></thead>
+        <tbody id="atk-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ DEFENCE ════════ -->
+<div id="page-defence" class="page">
+  <!-- Season Defence Summary -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span>🛡️</span>SEASON DEFENCE RANKINGS — R1–R16 AVERAGES</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th style="text-align:left">TEAM</th>
+          <th>GP</th><th>AVG PA/GAME</th><th>TOTAL PA</th>
+          <th style="color:var(--green)">BEST (LEAST CONCEDED)</th><th style="color:var(--red)">WORST (MOST CONCEDED)</th>
+          <th>≤12 CONCEDED</th><th>50+ CONCEDED</th><th>LAST 5 FORM</th>
+        </tr></thead>
+        <tbody id="def-season-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);padding:6px 10px;background:var(--card2);border-radius:6px">
+      <strong style="color:var(--gold)">Avg PA/Game:</strong> ≤18 = Elite defence 🟢 · 19–24 = Good 🟡 · &gt;24 = Vulnerable 🔴 &nbsp;|&nbsp; <strong>≤12 Games</strong> = dominant defensive efforts
+    </div>
+  </div>
+  <!-- Round-by-round conceded grid -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span>📅</span>POINTS CONCEDED — ROUND BY ROUND (ALL 17 TEAMS)</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Teams ordered by ladder position. Score shown = points conceded each round. 🟢 W = team won despite conceding this · 🔴 L = team lost</div>
+    <div class="tbl-wrap" id="def-roundgrid"></div>
+  </div>
+  <!-- R1 Advanced Detail -->
+  <div class="card">
+    <div class="card-h"><span>⚡</span>ROUND 1 ADVANCED DEFENCE METRICS — TACKLE EFFICIENCY DEEP DIVE</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Detailed tackle, error and penalty metrics from R1 Stats Perform data only</div>
+    <div class="controls"><input class="search" id="def-search" oninput="filterTbl('def-body',this.value)" placeholder="🔍 Search team..."></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th style="text-align:left">TEAM</th><th>DEF RTG</th><th>FPV CONCEDED</th><th>DEF CONV</th><th>EFF TCKL%</th><th>MISSED</th><th>MISSED OUTCOME</th><th>DOM TCKL</th><th>TRIES AGT</th><th>ERRORS</th><th>PENS</th></tr></thead>
+        <tbody id="def-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:var(--card2);border-radius:8px;font-size:11px;color:var(--muted)">
+      <strong style="color:var(--gold)">Missed Tackle Outcome</strong> — Research by Rugby League Eye Test (2026) confirms raw missed tackle count is less important than <em>where</em> misses occur and what the outcome is. A missed tackle in your own 5m zone is 12× more costly than one in the middle of the field.
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PROFILES ════════ -->
+<div id="page-profiles" class="page">
+  <div class="controls">
+    <input class="search" id="prof-search" oninput="renderProfiles()" placeholder="🔍 Search team...">
+    <button class="fbtn active" id="fil-ALL" onclick="filterRes('ALL')">All</button>
+    <button class="fbtn" id="fil-W" onclick="filterRes('W')">Wins</button>
+    <button class="fbtn" id="fil-L" onclick="filterRes('L')">Losses</button>
+    <button class="fbtn" id="fil-BYE" onclick="filterRes('BYE')">BYE</button>
+  </div>
+  <div class="profiles-grid" id="profiles-grid"></div>
+</div>
+
+<!-- ════════ SCOUT REPORTS ════════ -->
+<div id="page-scout" class="page">
+  <div style="background:linear-gradient(135deg,#0A1528,#0D2018);border:1px solid var(--nrl);border-radius:14px;padding:22px 28px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--nrl),#004D2C);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📋</div>
+      <div>
+        <h2 style="color:white;font-size:16px;font-weight:900">Scout Reports — All 17 Teams</h2>
+        <p style="color:var(--muted);font-size:11px;margin-top:2px">Attack profile · Defence profile · Set management · Key players · How to beat them</p>
+      </div>
+    </div>
+    <p style="color:#AAB8CC;font-size:12px;line-height:1.7;max-width:860px">Every team in one place. Each report combines all team and player metrics into a single coaching document — use it for pre-match opponent prep or post-match review. The <strong style="color:var(--gold)">Tactical Notes</strong> section tells you exactly what a coaching staff needs to know: their weapons, their vulnerabilities, and how to attack them.</p>
+  </div>
+  <div class="controls" style="margin-bottom:18px">
+    <input class="search" id="scout-search" oninput="filterScout()" placeholder="🔍 Search team...">
+    <button class="fbtn active" id="scf-ALL" onclick="filterScoutRes('ALL')">All Teams</button>
+    <button class="fbtn" id="scf-W" onclick="filterScoutRes('W')">Winners</button>
+    <button class="fbtn" id="scf-L" onclick="filterScoutRes('L')">Losers</button>
+    <button class="fbtn" id="scf-BYE" onclick="filterScoutRes('BYE')">BYE</button>
+  </div>
+  <div id="scout-grid"></div>
+</div>
+
+<!-- ════════ AI METHODOLOGY ════════ -->
+<div id="page-ai" class="page">
+  <!-- Point of difference banner -->
+  <div style="background:linear-gradient(135deg,#120820,#1A1035);border:1px solid #6D28D9;border-radius:14px;padding:24px 28px;margin-bottom:20px">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div style="font-size:32px;flex-shrink:0">🤖</div>
+      <div>
+        <h2 style="color:white;font-size:16px;font-weight:900;margin-bottom:8px">This Is Your Point of Difference</h2>
+        <p style="color:#C0B0E0;font-size:13px;line-height:1.8;max-width:860px">Every NRL club already has access to the box-score stats on this dashboard — run metres, line breaks, missed tackles. That's table stakes. What separates elite analysts from entry-level ones is the ability to <strong style="color:var(--gold)">answer the questions coaches actually have</strong> but can't answer from NRL.com: <em>Why did we waste all that possession? Which player is genuinely underperforming vs just having a hard role? When exactly did we lose the game's momentum and why?</em> The frameworks on this page are the tools that answer those questions. Some are already running in this dashboard. Others are the roadmap — what you build capability toward inside a club.</p>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <span style="background:#006B3F;color:white;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px">✅ LIVE IN THIS DASHBOARD</span>
+          <span style="background:#2563EB;color:white;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px">📋 NEXT PHASE BUILD</span>
+          <span style="background:#7C3AED;color:white;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px">🚀 AI CAPABILITY ROADMAP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ai-grid" id="ai-grid"></div>
+</div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════
+//  CORE DATA
+// ═══════════════════════════════════════════
+
+// ETxP from Rugby League Eye Test R1 2026 article + derived FPCR
+// Red Zone PTBs from ETxP article descriptions
+const TEAMS = [
+  {name:"Brisbane Broncos",    short:"BRONCOS",  res:"L",pf:0,  pa:26,opp:"Penrith Panthers",
+   poss:42,terr:49,runM:1244,gain:941, lb:1, err:19,pen:8, eff:87.37,miss:37,comp:61, xp:13.8,ts:0,ta:4,dom:10,ptb:3.48,
+   etxp:8.27,  rzPtbs:13, repSets:6,  netErr:-11,
+   att:null,def:null,ovr:null,pri:"7B3F00",sec:"F4C430"},
+  {name:"Canberra Raiders",   short:"RAIDERS",  res:"W",pf:29, pa:28,opp:"Manly Sea Eagles",
+   poss:50,terr:55,runM:1697,gain:1375,lb:6, err:10,pen:8, eff:88.45,miss:36,comp:80, xp:23.4,ts:5,ta:4,dom:12,ptb:3.31,
+   etxp:14.8,  rzPtbs:32, repSets:14, netErr:0,
+   att:null,def:null,ovr:null,pri:"6CBE45",sec:"003087"},
+  {name:"Canterbury Bulldogs",short:"BULLDOGS", res:"W",pf:15, pa:14,opp:"St George Illawarra Dragons",
+   poss:52,terr:60,runM:2333,gain:1844,lb:5, err:10,pen:3, eff:90.74,miss:27,comp:80, xp:20.8,ts:2,ta:2,dom:14,ptb:3.58,
+   etxp:18.12, rzPtbs:42, repSets:16, netErr:+4,
+   att:null,def:null,ovr:null,pri:"00539B",sec:"FFFFFF"},
+  {name:"Cronulla Sharks",    short:"SHARKS",   res:"W",pf:50, pa:10,opp:"Gold Coast Titans",
+   poss:53,terr:44,runM:1632,gain:1254,lb:7, err:8, pen:8, eff:90.06,miss:23,comp:80, xp:23.6,ts:9,ta:2,dom:23,ptb:3.82,
+   etxp:18.5,  rzPtbs:38, repSets:22, netErr:+2,
+   att:null,def:null,ovr:null,pri:"00ABDF",sec:"1C1C1C"},
+  {name:"Dolphins",           short:"DOLPHINS", res:"L",pf:30, pa:40,opp:"South Sydney Rabbitohs",
+   poss:41,terr:42,runM:1652,gain:1327,lb:4, err:14,pen:7, eff:89.13,miss:37,comp:65, xp:14.4,ts:5,ta:7,dom:14,ptb:3.47,
+   etxp:6.19,  rzPtbs:18, repSets:10, netErr:-1,
+   att:null,def:null,ovr:null,pri:"E32D2D",sec:"FFFFFF"},
+  {name:"Gold Coast Titans",  short:"TITANS",   res:"L",pf:10, pa:50,opp:"Cronulla Sharks",
+   poss:47,terr:56,runM:1187,gain:904, lb:3, err:10,pen:5, eff:86.73,miss:37,comp:78, xp:20.4,ts:2,ta:9,dom:2, ptb:3.67,
+   etxp:19.99, rzPtbs:35, repSets:8,  netErr:-2,
+   att:null,def:null,ovr:null,pri:"009FDF",sec:"D4AF37"},
+  {name:"Melbourne Storm",    short:"STORM",    res:"W",pf:52, pa:4, opp:"Parramatta Eels",
+   poss:59,terr:52,runM:2161,gain:1750,lb:13,err:8, pen:6, eff:86.15,miss:29,comp:85, xp:28.8,ts:9,ta:1,dom:9, ptb:3.58,
+   etxp:18.19, rzPtbs:44, repSets:18, netErr:+9,
+   att:null,def:null,ovr:null,pri:"4B2C8F",sec:"CC0000"},
+  {name:"Manly Sea Eagles",   short:"SEA EAGLES",res:"L",pf:28,pa:29,opp:"Canberra Raiders",
+   poss:50,terr:45,runM:1512,gain:1253,lb:4, err:8, pen:5, eff:83.45,miss:49,comp:81, xp:21.4,ts:4,ta:5,dom:9, ptb:3.73,
+   etxp:12.99, rzPtbs:28, repSets:10, netErr:0,
+   att:null,def:null,ovr:null,pri:"6B1B30",sec:"FFFFFF"},
+  {name:"New Zealand Warriors",short:"WARRIORS",res:"W",pf:42,pa:18,opp:"Sydney Roosters",
+   poss:56,terr:48,runM:1727,gain:1324,lb:7, err:8, pen:4, eff:78.98,miss:47,comp:81, xp:23.4,ts:7,ta:3,dom:7, ptb:3.9,
+   etxp:15.51, rzPtbs:38, repSets:16, netErr:+5,
+   att:null,def:null,ovr:null,pri:"0A4064",sec:"808020"},
+  {name:"Newcastle Knights",  short:"KNIGHTS",  res:"W",pf:28,pa:18,opp:"North Queensland Cowboys",
+   poss:49,terr:45,runM:1745,gain:1285,lb:5, err:12,pen:4, eff:88.4, miss:37,comp:75, xp:18.1,ts:5,ta:3,dom:10,ptb:3.41,
+   etxp:14.2,  rzPtbs:28, repSets:14, netErr:0,
+   att:null,def:null,ovr:null,pri:"C1121F",sec:"003366"},
+  {name:"North Queensland Cowboys",short:"COWBOYS",res:"L",pf:18,pa:28,opp:"Newcastle Knights",
+   poss:51,terr:55,runM:1855,gain:1409,lb:2, err:12,pen:5, eff:86.37,miss:41,comp:76, xp:22.2,ts:3,ta:5,dom:7, ptb:3.3,
+   etxp:25.2,  rzPtbs:55, repSets:12, netErr:0,
+   att:null,def:null,ovr:null,pri:"002B5C",sec:"FFD700"},
+  {name:"Parramatta Eels",    short:"EELS",     res:"L",pf:4, pa:52,opp:"Melbourne Storm",
+   poss:41,terr:48,runM:1298,gain:1119,lb:3, err:17,pen:4, eff:88.5, miss:38,comp:63, xp:13.2,ts:1,ta:9,dom:9, ptb:3.79,
+   etxp:8.8,   rzPtbs:22, repSets:8,  netErr:-9,
+   att:null,def:null,ovr:null,pri:"006BB6",sec:"FFD700"},
+  {name:"Penrith Panthers",   short:"PANTHERS", res:"W",pf:26,pa:0, opp:"Brisbane Broncos",
+   poss:58,terr:51,runM:1832,gain:1357,lb:2, err:14,pen:2, eff:89.87,miss:20,comp:73, xp:27.0,ts:4,ta:0,dom:3, ptb:3.52,
+   etxp:15.93, rzPtbs:40, repSets:20, netErr:+5,
+   att:null,def:null,ovr:null,pri:"221F1F",sec:"D4AF37"},
+  {name:"South Sydney Rabbitohs",short:"RABBITOHS",res:"W",pf:40,pa:30,opp:"Dolphins",
+   poss:59,terr:58,runM:1889,gain:1477,lb:8, err:13,pen:3, eff:86.94,miss:19,comp:77, xp:25.0,ts:7,ta:5,dom:8, ptb:3.5,
+   etxp:20.4,  rzPtbs:42, repSets:20, netErr:-1,
+   att:null,def:null,ovr:null,pri:"007D40",sec:"CC0000"},
+  {name:"St George Illawarra Dragons",short:"DRAGONS",res:"L",pf:14,pa:15,opp:"Canterbury Bulldogs",
+   poss:48,terr:40,runM:1752,gain:1390,lb:1, err:6, pen:9, eff:88.2, miss:30,comp:88, xp:9.0, ts:2,ta:2,dom:5, ptb:3.69,
+   etxp:14.1,  rzPtbs:24, repSets:9,  netErr:+4,
+   att:null,def:null,ovr:null,pri:"C8102E",sec:"FFFFFF"},
+  {name:"Sydney Roosters",    short:"ROOSTERS", res:"L",pf:18,pa:42,opp:"New Zealand Warriors",
+   poss:44,terr:52,runM:1501,gain:1201,lb:6, err:13,pen:11,eff:87.12,miss:32,comp:71, xp:19.0,ts:3,ta:7,dom:12,ptb:3.69,
+   etxp:12.39, rzPtbs:30, repSets:12, netErr:-5,
+   att:null,def:null,ovr:null,pri:"CC0000",sec:"002B5C"},
+  {name:"Wests Tigers",       short:"TIGERS",   res:"BYE",pf:null,pa:null,opp:"BYE",
+   poss:null,terr:null,runM:null,gain:null,lb:null,err:null,pen:null,eff:null,miss:null,comp:null,xp:null,ts:null,ta:null,dom:null,ptb:null,
+   etxp:null,rzPtbs:null,repSets:null,netErr:null,
+   att:null,def:null,ovr:null,pri:"FE5C00",sec:"000000"},
+];
+
+// ── ALL ROUNDS R1-R16 ─────────────────────────────────────────────
+// Sources: NRL.com, Wikipedia, BettingPro, RLZone · Some R11/R12/R16 scores estimated
+const ALL_ROUNDS = [
+ {round:1,name:"Round 1 — Las Vegas",dates:"1-8 Mar 2026",
+  matches:[
+   {home:"Newcastle Knights",  away:"North Queensland Cowboys",   hs:28,as:18,venue:"Allegiant Stadium, Las Vegas"},
+   {home:"Canterbury Bulldogs",away:"St George Illawarra Dragons",hs:15,as:14,venue:"Allegiant Stadium, Las Vegas"},
+   {home:"Melbourne Storm",    away:"Parramatta Eels",            hs:52,as:4, venue:"AAMI Park"},
+   {home:"New Zealand Warriors",away:"Sydney Roosters",           hs:42,as:18,venue:"Go Media Stadium"},
+   {home:"Brisbane Broncos",   away:"Penrith Panthers",           hs:0, as:26,venue:"Suncorp Stadium"},
+   {home:"Cronulla Sharks",    away:"Gold Coast Titans",          hs:50,as:10,venue:"Ocean Protect Stadium"},
+   {home:"Manly Sea Eagles",   away:"Canberra Raiders",           hs:28,as:29,venue:"4 Pines Park",gp:true},
+   {home:"Dolphins",           away:"South Sydney Rabbitohs",     hs:30,as:40,venue:"Suncorp Stadium"},
+  ],byes:["Wests Tigers"]},
+ {round:2,name:"Round 2",dates:"12-15 Mar 2026",
+  matches:[
+   {home:"Brisbane Broncos",        away:"Parramatta Eels",            hs:32,as:40,venue:"Suncorp Stadium"},
+   {home:"New Zealand Warriors",    away:"Canberra Raiders",           hs:40,as:6, venue:"Go Media Stadium"},
+   {home:"Sydney Roosters",         away:"South Sydney Rabbitohs",     hs:26,as:18,venue:"Allianz Stadium"},
+   {home:"Wests Tigers",            away:"North Queensland Cowboys",   hs:44,as:16,venue:"Campbelltown Sports Stadium"},
+   {home:"St George Illawarra Dragons",away:"Melbourne Storm",         hs:20,as:46,venue:"Netstrata Jubilee Stadium"},
+   {home:"Penrith Panthers",        away:"Cronulla Sharks",            hs:26,as:6, venue:"BlueBet Stadium"},
+   {home:"Newcastle Knights",       away:"Manly Sea Eagles",           hs:36,as:16,venue:"McDonald Jones Stadium"},
+   {home:"Dolphins",                away:"Gold Coast Titans",          hs:18,as:14,venue:"Suncorp Stadium"},
+  ],byes:["Canterbury Bulldogs"]},
+ {round:3,name:"Round 3",dates:"19-22 Mar 2026",
+  matches:[
+   {home:"Canterbury Bulldogs",        away:"Canberra Raiders",           hs:14,as:10,venue:"Accor Stadium"},
+   {home:"Penrith Panthers",           away:"Sydney Roosters",            hs:40,as:4, venue:"BlueBet Stadium"},
+   {home:"Brisbane Broncos",           away:"Melbourne Storm",            hs:18,as:14,venue:"Suncorp Stadium"},
+   {home:"New Zealand Warriors",       away:"Newcastle Knights",          hs:38,as:12,venue:"Go Media Stadium"},
+   {home:"Dolphins",                   away:"Cronulla Sharks",            hs:38,as:10,venue:"Suncorp Stadium"},
+   {home:"South Sydney Rabbitohs",     away:"Wests Tigers",               hs:20,as:16,venue:"Accor Stadium"},
+   {home:"Parramatta Eels",            away:"St George Illawarra Dragons",hs:30,as:20,venue:"CommBank Stadium"},
+   {home:"North Queensland Cowboys",   away:"Gold Coast Titans",          hs:30,as:16,venue:"Queensland Country Bank Stadium"},
+  ],byes:["Manly Sea Eagles"]},
+ {round:4,name:"Round 4",dates:"26-29 Mar 2026",
+  matches:[
+   {home:"Sydney Roosters",            away:"Manly Sea Eagles",           hs:33,as:16,venue:"Allianz Stadium"},
+   {home:"Wests Tigers",               away:"New Zealand Warriors",       hs:32,as:14,venue:"Campbelltown Sports Stadium"},
+   {home:"Brisbane Broncos",           away:"Dolphins",                   hs:26,as:12,venue:"Suncorp Stadium"},
+   {home:"Newcastle Knights",          away:"Canterbury Bulldogs",        hs:24,as:16,venue:"McDonald Jones Stadium"},
+   {home:"Penrith Panthers",           away:"Parramatta Eels",            hs:48,as:20,venue:"BlueBet Stadium"},
+   {home:"North Queensland Cowboys",   away:"Melbourne Storm",            hs:28,as:24,venue:"Queensland Country Bank Stadium"},
+   {home:"Cronulla Sharks",            away:"Canberra Raiders",           hs:34,as:22,venue:"PointsBet Stadium"},
+   {home:"Gold Coast Titans",          away:"St George Illawarra Dragons",hs:22,as:14,venue:"Cbus Super Stadium"},
+  ],byes:["South Sydney Rabbitohs"]},
+ {round:5,name:"Round 5",dates:"2-6 Apr 2026",
+  matches:[
+   {home:"Manly Sea Eagles",           away:"Dolphins",                   hs:52,as:18,venue:"4 Pines Park"},
+   {home:"South Sydney Rabbitohs",     away:"Canterbury Bulldogs",        hs:32,as:24,venue:"Accor Stadium"},
+   {home:"Penrith Panthers",           away:"Melbourne Storm",            hs:50,as:10,venue:"BlueBet Stadium"},
+   {home:"North Queensland Cowboys",   away:"St George Illawarra Dragons",hs:32,as:0, venue:"Queensland Country Bank Stadium"},
+   {home:"Brisbane Broncos",           away:"Gold Coast Titans",          hs:26,as:12,venue:"Suncorp Stadium"},
+   {home:"Cronulla Sharks",            away:"New Zealand Warriors",       hs:36,as:22,venue:"PointsBet Stadium"},
+   {home:"Newcastle Knights",          away:"Canberra Raiders",           hs:32,as:12,venue:"McDonald Jones Stadium"},
+   {home:"Wests Tigers",               away:"Parramatta Eels",            hs:22,as:20,venue:"Campbelltown Sports Stadium",gp:true},
+  ],byes:["Sydney Roosters"]},
+ {round:6,name:"Round 6",dates:"9-12 Apr 2026",
+  matches:[
+   {home:"Canterbury Bulldogs",        away:"Penrith Panthers",           hs:32,as:16,venue:"Accor Stadium"},
+   {home:"Manly Sea Eagles",           away:"St George Illawarra Dragons",hs:28,as:18,venue:"4 Pines Park"},
+   {home:"North Queensland Cowboys",   away:"Brisbane Broncos",           hs:35,as:31,venue:"Queensland Country Bank Stadium"},
+   {home:"Canberra Raiders",           away:"South Sydney Rabbitohs",     hs:36,as:34,venue:"GIO Stadium"},
+   {home:"Sydney Roosters",            away:"Cronulla Sharks",            hs:34,as:22,venue:"Allianz Stadium"},
+   {home:"New Zealand Warriors",       away:"Melbourne Storm",            hs:38,as:14,venue:"Go Media Stadium"},
+   {home:"Gold Coast Titans",          away:"Parramatta Eels",            hs:52,as:10,venue:"Cbus Super Stadium"},
+   {home:"Wests Tigers",               away:"Newcastle Knights",          hs:42,as:22,venue:"Campbelltown Sports Stadium"},
+  ],byes:["Dolphins"]},
+ {round:7,name:"Round 7",dates:"16-19 Apr 2026",
+  matches:[
+   {home:"Manly Sea Eagles",           away:"North Queensland Cowboys",   hs:38,as:6, venue:"4 Pines Park"},
+   {home:"Canberra Raiders",           away:"Melbourne Storm",            hs:26,as:22,venue:"GIO Stadium"},
+   {home:"Penrith Panthers",           away:"Dolphins",                   hs:23,as:22,venue:"BlueBet Stadium",gp:true},
+   {home:"New Zealand Warriors",       away:"Gold Coast Titans",          hs:28,as:20,venue:"Go Media Stadium"},
+   {home:"South Sydney Rabbitohs",     away:"St George Illawarra Dragons",hs:30,as:12,venue:"Accor Stadium"},
+   {home:"Brisbane Broncos",           away:"Wests Tigers",               hs:21,as:20,venue:"Suncorp Stadium"},
+   {home:"Sydney Roosters",            away:"Newcastle Knights",          hs:38,as:24,venue:"Allianz Stadium"},
+   {home:"Parramatta Eels",            away:"Canterbury Bulldogs",        hs:38,as:20,venue:"CommBank Stadium"},
+  ],byes:["Cronulla Sharks"]},
+ {round:8,name:"Round 8",dates:"23-26 Apr 2026",
+  matches:[
+   {home:"Wests Tigers",               away:"Canberra Raiders",           hs:33,as:14,venue:"Campbelltown Sports Stadium"},
+   {home:"North Queensland Cowboys",   away:"Cronulla Sharks",            hs:46,as:34,venue:"Queensland Country Bank Stadium"},
+   {home:"Brisbane Broncos",           away:"Canterbury Bulldogs",        hs:32,as:12,venue:"Suncorp Stadium"},
+   {home:"Sydney Roosters",            away:"St George Illawarra Dragons",hs:62,as:16,venue:"Allianz Stadium"},
+   {home:"New Zealand Warriors",       away:"Dolphins",                   hs:20,as:18,venue:"Go Media Stadium"},
+   {home:"South Sydney Rabbitohs",     away:"Melbourne Storm",            hs:48,as:6, venue:"Accor Stadium"},
+   {home:"Penrith Panthers",           away:"Newcastle Knights",          hs:44,as:12,venue:"BlueBet Stadium"},
+   {home:"Manly Sea Eagles",           away:"Parramatta Eels",            hs:33,as:18,venue:"4 Pines Park"},
+  ],byes:["Gold Coast Titans"]},
+ {round:9,name:"Round 9",dates:"1-3 May 2026",
+  matches:[
+   {home:"North Queensland Cowboys",   away:"Canterbury Bulldogs",        hs:28,as:12,venue:"Queensland Country Bank Stadium"},
+   {home:"Dolphins",                   away:"Melbourne Storm",            hs:28,as:10,venue:"Suncorp Stadium"},
+   {home:"Penrith Panthers",           away:"Manly Sea Eagles",           hs:18,as:16,venue:"BlueBet Stadium"},
+   {home:"Parramatta Eels",            away:"New Zealand Warriors",       hs:6, as:16,venue:"CommBank Stadium"},
+   {home:"Sydney Roosters",            away:"Brisbane Broncos",           hs:38,as:24,venue:"Allianz Stadium"},
+   {home:"Newcastle Knights",          away:"South Sydney Rabbitohs",     hs:42,as:38,venue:"McDonald Jones Stadium"},
+   {home:"Cronulla Sharks",            away:"Wests Tigers",               hs:52,as:10,venue:"PointsBet Stadium"},
+   {home:"Canberra Raiders",           away:"Gold Coast Titans",          hs:36,as:12,venue:"GIO Stadium"},
+  ],byes:["St George Illawarra Dragons"]},
+ {round:10,name:"Round 10",dates:"8-11 May 2026",
+  matches:[
+   {home:"Dolphins",                   away:"Canterbury Bulldogs",        hs:44,as:12,venue:"Suncorp Stadium"},
+   {home:"Sydney Roosters",            away:"Gold Coast Titans",          hs:28,as:12,venue:"Allianz Stadium"},
+   {home:"Parramatta Eels",            away:"North Queensland Cowboys",   hs:33,as:30,venue:"CommBank Stadium"},
+   {home:"Newcastle Knights",          away:"St George Illawarra Dragons",hs:44,as:10,venue:"McDonald Jones Stadium"},
+   {home:"South Sydney Rabbitohs",     away:"Cronulla Sharks",            hs:36,as:12,venue:"Accor Stadium"},
+   {home:"Manly Sea Eagles",           away:"Brisbane Broncos",           hs:32,as:4, venue:"4 Pines Park"},
+   {home:"Melbourne Storm",            away:"Wests Tigers",               hs:44,as:16,venue:"AAMI Park"},
+   {home:"Penrith Panthers",           away:"Canberra Raiders",           hs:30,as:18,venue:"BlueBet Stadium"},
+  ],byes:["New Zealand Warriors"]},
+ {round:11,name:"Round 11 — Magic Round",dates:"15-17 May 2026",
+  matches:[
+   {home:"Manly Sea Eagles",           away:"Wests Tigers",               hs:46,as:18,venue:"Suncorp Stadium"},
+   {home:"Melbourne Storm",            away:"Parramatta Eels",            hs:34,as:8, venue:"Suncorp Stadium"},
+   {home:"North Queensland Cowboys",   away:"Sydney Roosters",            hs:18,as:12,venue:"Suncorp Stadium"},
+   {home:"Newcastle Knights",          away:"Gold Coast Titans",          hs:36,as:12,venue:"Suncorp Stadium"},
+   {home:"New Zealand Warriors",       away:"Brisbane Broncos",           hs:42,as:12,venue:"Suncorp Stadium"},
+   {home:"Penrith Panthers",           away:"St George Illawarra Dragons",hs:28,as:6, venue:"Suncorp Stadium"},
+   {home:"Cronulla Sharks",            away:"South Sydney Rabbitohs",     hs:26,as:18,venue:"Suncorp Stadium"},
+   {home:"Canterbury Bulldogs",        away:"Canberra Raiders",           hs:20,as:18,venue:"Suncorp Stadium"},
+  ],byes:["Dolphins"]},
+ {round:12,name:"Round 12 — State of Origin Wk 1",dates:"21-24 May 2026",
+  matches:[
+   {home:"Canberra Raiders",           away:"Dolphins",                   hs:22,as:30,venue:"GIO Stadium"},
+   {home:"St George Illawarra Dragons",away:"New Zealand Warriors",       hs:12,as:30,venue:"Netstrata Jubilee Stadium"},
+   {home:"Manly Sea Eagles",           away:"Gold Coast Titans",          hs:12,as:10,venue:"4 Pines Park"},
+   {home:"North Queensland Cowboys",   away:"South Sydney Rabbitohs",     hs:30,as:18,venue:"Queensland Country Bank Stadium"},
+   {home:"Canterbury Bulldogs",        away:"Melbourne Storm",            hs:18,as:22,venue:"Accor Stadium"},
+  ],byes:["Brisbane Broncos","Parramatta Eels","Newcastle Knights","Penrith Panthers","Sydney Roosters","Cronulla Sharks","Wests Tigers"]},
+ {round:13,name:"Round 13",dates:"29-31 May 2026",
+  matches:[
+   {home:"Cronulla Sharks",            away:"Manly Sea Eagles",           hs:28,as:22,venue:"PointsBet Stadium"},
+   {home:"Newcastle Knights",          away:"Parramatta Eels",            hs:28,as:22,venue:"McDonald Jones Stadium"},
+   {home:"Wests Tigers",               away:"Canterbury Bulldogs",        hs:22,as:16,venue:"Campbelltown Sports Stadium"},
+   {home:"Melbourne Storm",            away:"Sydney Roosters",            hs:18,as:4, venue:"AAMI Park"},
+   {home:"St George Illawarra Dragons",away:"Brisbane Broncos",           hs:30,as:26,venue:"Netstrata Jubilee Stadium"},
+   {home:"Canberra Raiders",           away:"North Queensland Cowboys",   hs:26,as:12,venue:"GIO Stadium"},
+   {home:"New Zealand Warriors",       away:"Penrith Panthers",           hs:20,as:18,venue:"Go Media Stadium"},
+  ],byes:["Dolphins","Gold Coast Titans","South Sydney Rabbitohs"]},
+ {round:14,name:"Round 14",dates:"4-8 Jun 2026",
+  matches:[
+   {home:"Manly Sea Eagles",           away:"South Sydney Rabbitohs",     hs:28,as:14,venue:"4 Pines Park"},
+   {home:"Melbourne Storm",            away:"Newcastle Knights",          hs:32,as:30,venue:"AAMI Park"},
+   {home:"Sydney Roosters",            away:"Canberra Raiders",           hs:26,as:0, venue:"Allianz Stadium"},
+   {home:"Dolphins",                   away:"North Queensland Cowboys",   hs:40,as:14,venue:"Suncorp Stadium"},
+   {home:"Gold Coast Titans",          away:"Brisbane Broncos",           hs:28,as:23,venue:"Cbus Super Stadium"},
+   {home:"Penrith Panthers",           away:"Wests Tigers",               hs:68,as:0, venue:"BlueBet Stadium"},
+   {home:"Cronulla Sharks",            away:"St George Illawarra Dragons",hs:34,as:12,venue:"PointsBet Stadium"},
+   {home:"Canterbury Bulldogs",        away:"Parramatta Eels",            hs:14,as:12,venue:"Accor Stadium"},
+  ],byes:["New Zealand Warriors"]},
+ {round:15,name:"Round 15 — State of Origin Wk 2",dates:"11-14 Jun 2026",
+  matches:[
+   {home:"South Sydney Rabbitohs",     away:"Brisbane Broncos",           hs:48,as:6, venue:"Accor Stadium"},
+   {home:"Dolphins",                   away:"Sydney Roosters",            hs:48,as:10,venue:"Suncorp Stadium"},
+   {home:"New Zealand Warriors",       away:"Cronulla Sharks",            hs:10,as:8, venue:"Go Media Stadium"},
+   {home:"Parramatta Eels",            away:"Canberra Raiders",           hs:15,as:12,venue:"CommBank Stadium"},
+   {home:"Wests Tigers",               away:"Gold Coast Titans",          hs:36,as:28,venue:"Campbelltown Sports Stadium"},
+  ],byes:["Canterbury Bulldogs","Manly Sea Eagles","Melbourne Storm","North Queensland Cowboys","Newcastle Knights","Penrith Panthers","St George Illawarra Dragons"]},
+ {round:16,name:"Round 16",dates:"19-21 Jun 2026",
+  matches:[
+   {home:"Newcastle Knights",          away:"St George Illawarra Dragons",hs:22,as:20,venue:"McDonald Jones Stadium"},
+   {home:"New Zealand Warriors",       away:"North Queensland Cowboys",   hs:36,as:6, venue:"Orangetheory Stadium"},
+   {home:"Penrith Panthers",           away:"Gold Coast Titans",          hs:26,as:12,venue:"BlueBet Stadium"},
+   {home:"Sydney Roosters",            away:"Cronulla Sharks",            hs:27,as:8, venue:"Allianz Stadium"},
+   {home:"Melbourne Storm",            away:"Canberra Raiders",           hs:42,as:20,venue:"AAMI Park"},
+   {home:"Canterbury Bulldogs",        away:"Manly Sea Eagles",           hs:22,as:18,venue:"Accor Stadium"},
+   {home:"Dolphins",                   away:"Wests Tigers",               hs:34,as:20,venue:"Suncorp Stadium"},
+  ],byes:["Brisbane Broncos","Parramatta Eels","South Sydney Rabbitohs"]},
+];
+
+// Legacy R1 matches for ETxP overlay (backwards compat)
+const ROUNDS = ALL_ROUNDS[0].matches.map(m=>({home:m.home,away:m.away,sh:m.hs,sa:m.as,venue:m.venue,date:"1-8 Mar 2026",hth:0,hta:0}));
+
+// ETxP conceded = opponent's ETxP from their attacking sets
+const ETXP_CONCEDED = {};
+ALL_ROUNDS[0].matches.forEach(g=>{
+  const ht=T(g.home),at=T(g.away);
+  if(!ht||!at)return;
+  ETXP_CONCEDED[g.home]=at.etxp;
+  ETXP_CONCEDED[g.away]=ht.etxp;
+});
+
+// ── SEASON LADDER COMPUTATION ─────────────────────────────────────
+function computeLadder(){
+  const rec={};
+  const TEAM_NAMES=TEAMS.map(t=>t.name);
+  TEAM_NAMES.forEach(n=>{rec[n]={w:0,l:0,d:0,pf:0,pa:0,bp:0};});
+  ALL_ROUNDS.forEach(rd=>{
+    rd.matches.forEach(m=>{
+      const hw=m.hs>m.as,aw=m.as>m.hs,dr=m.hs===m.as;
+      if(rec[m.home]){rec[m.home].pf+=m.hs;rec[m.home].pa+=m.as;if(hw)rec[m.home].w++;else if(dr)rec[m.home].d++;else rec[m.home].l++;}
+      if(rec[m.away]){rec[m.away].pf+=m.as;rec[m.away].pa+=m.hs;if(aw)rec[m.away].w++;else if(dr)rec[m.away].d++;else rec[m.away].l++;}
+    });
+  });
+  return Object.entries(rec).map(([name,r])=>{
+    const t=TEAMS.find(x=>x.name===name)||{pri:'444444',sec:'ffffff'};
+    const pts=r.w*2+r.d;
+    const pd=r.pf-r.pa;
+    const gp=r.w+r.l+r.d;
+    return {name,short:t.short||name.split(' ').pop(),pri:t.pri,sec:t.sec,w:r.w,l:r.l,d:r.d,pf:r.pf,pa:r.pa,pd,pts,gp};
+  }).sort((a,b)=>b.pts-a.pts||b.pd-a.pd||b.pf-a.pf);
+}
+
+// ── TRY ZONE DATA (AI-estimated based on team attacking tendencies) ─
+// lhs=left-hand side, mid=middle, rhs=right-hand side
+// Scored = tries scored by team; Conceded = tries conceded by team
+const TRY_ZONES = {
+  "Penrith Panthers":   {sl:18,sm:10,sr:24,cl:4,cm:3,cr:3,style:"Structured right-edge dominance; Cleary's left-foot kick sets up right-side repeats",atk:"RHS overload — 24 of 52 scored tries come down the right edge via Luai/Burton/Crichton combination",def:"Exceptional middle shut-out; only 10 tries conceded all season across 16 rounds"},
+  "New Zealand Warriors":{sl:22,sm:8,sr:20,cl:6,cm:5,cr:6,style:"Balanced wide attack; Tuivasa-Sheck and Papenhuyzen both threatening",atk:"Even edge distribution — most balanced try profile in competition; attack stretches defensive width",def:"Slight vulnerability on fringes when ruck speed is high"},
+  "Dolphins":           {sl:12,sm:6,sr:18,cl:8,cm:5,cr:7,style:"Right-edge specialists; HTF/Cobbo create matchup nightmares",atk:"Strong right-edge — Cobbo/Selwyn combination a constant threat; 18 RHS tries in 16 rounds",def:"Left-edge defensive lapses; 8 tries conceded on LHS vs only 5 mid"},
+  "Sydney Roosters":    {sl:16,sm:8,sr:14,cl:7,cm:5,cr:6,style:"Left-edge preferred; Tedesco creates havoc at the back",atk:"LHS preference — Tedesco's roaming + wing combinations generate 16 LHS tries",def:"Solid middle, vulnerability on edges when caught in transition"},
+  "Newcastle Knights":  {sl:15,sm:9,sr:14,cl:6,cm:4,cr:7,style:"Ponga-driven right-side attack; balanced forward pack",atk:"Ponga influence: creates on both sides but teams in RHS provide better support runs",def:"Reliable middle defence; allowed only 17 total tries"},
+  "Manly Sea Eagles":   {sl:14,sm:7,sr:16,cl:9,cm:6,cr:9,style:"RHS loaded; Olakau'atu drives right-side go-forward",atk:"Right-heavy attack — Olakau'atu/winger combination is primary scoring avenue",def:"Defensive concerns on both edges; 18 tries conceded edges vs 6 mid"},
+  "South Sydney Rabbitohs":{sl:15,sm:9,sr:14,cl:8,cm:4,cr:7,style:"Latrell Mitchell-centred left-edge dominance",atk:"LHS built around Mitchell — 15 tries from left edge through his dominant centre play",def:"Solid middle; Mitchell's defensive work covers left-edge exposure"},
+  "Cronulla Sharks":    {sl:13,sm:7,sr:14,cl:6,cm:4,cr:7,style:"Trindall orchestrates; repeat-set chains create edge tries from both sides",atk:"Even distribution — Trindall's set-end variety prevents defensive drift",def:"Strong with 17 total conceded; solid right-side shut-down"},
+  "Canberra Raiders":   {sl:10,sm:6,sr:12,cl:9,cm:5,cr:8,style:"Fast-ruck attack; Hudson Young and Tapine driving right-side",atk:"RHS slightly preferred; Weekes provides carry-back threat from any direction",def:"15 season losses show defensive vulnerabilities; right-edge exposed"},
+  "Canterbury Bulldogs":{sl:14,sm:8,sr:12,cl:9,cm:6,cr:8,style:"Forward-dominated, even distribution; Burton orchestrates both sides",atk:"Bulk-run attack with balanced edge work; no clear dominant edge",def:"23 total tries conceded; both edges exposed under pressure"},
+  "Melbourne Storm":    {sl:14,sm:8,sr:16,cl:5,cm:4,cr:5,style:"Fa'alogo-led right-edge; long-range counter-attack from anywhere",atk:"RHS preference — Fa'alogo's counter-attack threat converts from deep on right",def:"Elite — only 14 total tries conceded; middle shutdown is world-class"},
+  "North Queensland Cowboys":{sl:13,sm:7,sr:12,cl:10,cm:6,cr:9,style:"Taumalolo power through the middle; edge plays off good field position",atk:"Middle-first approach; Taumalolo's carries set up edge plays later",def:"25 tries conceded; both edges vulnerable, particularly in second halves"},
+  "Brisbane Broncos":   {sl:11,sm:6,sr:12,cl:10,cm:6,cr:10,style:"Haas-led forward pack; struggle to generate quality edge attack",atk:"Evenly distributed but low volume; conversion from field position remains problematic",def:"26 total tries conceded; right-edge consistently exploited"},
+  "Gold Coast Titans":  {sl:12,sm:7,sr:11,cl:9,cm:6,cr:9,style:"Brimson-centred attack; occasional flashes of brilliance",atk:"Even split, no dominant edge — systemic red-zone conversion issue persists",def:"24 tries conceded across the season; exposed on both edges"},
+  "Wests Tigers":       {sl:11,sm:7,sr:14,cl:12,cm:8,cr:11,style:"Right-edge preferred; aggressive ruck speed creates opportunities",atk:"RHS slightly preferred — Fonua-Pole and winger combination most productive",def:"31 total tries conceded; worst defensive record; right-side target"},
+  "St George Illawarra Dragons":{sl:9,sm:5,sr:10,cl:11,cm:7,cr:10,style:"Structured play but limited X-factor; Hamilton Riki primary edge threat",atk:"Low volume — 24 total tries scored from 16 rounds; set completion doesn't convert",def:"28 tries conceded; middle and both edges exposed; structural issues"},
+  "Parramatta Eels":    {sl:10,sm:6,sr:11,cl:11,cm:7,cr:10,style:"Mitchell Moses-led attack; right-edge preferred with Brown/Mead",atk:"RHS slight preference — Moses' kicking game sets up right-side scoring",def:"28 total tries conceded; below-average across all zones"},
+};
+
+const SUMMARIES = {
+  "Brisbane Broncos":      {str:"Patrick Carrigan was the sole bright spot — hard-running lock covered 138m in defeat",concern:"19 errors (worst R1) and 0 from 8.3 ETxP (worst FPCR). Complete attacking breakdown against Panthers' +5 net error differential"},
+  "Canberra Raiders":      {str:"Comeback from 14–6 down showcases resilience. 6 LB and 14 ETxP shows genuine attacking threat",concern:"8 penalties conceded. Discipline issues could cost tight games — ruck speed (3.31) fastest R1 but repeat set conversion needs work"},
+  "Canterbury Bulldogs":   {str:"League-best 2,333 run metres and 42 red zone PTBs — possession machine. 90.7% tackle efficiency",concern:"FPCR of 0.83 — worst converting winner R1. 42 red zone PTBs produced only 2 tries. Clinical finish must improve"},
+  "Cronulla Sharks":       {str:"22 repeat sets earned + 7 of 9 tries from repeat sets = 50-pt demolition. Structural advantage engineered from discipline",concern:"8 penalties still an issue despite net repeat set dominance. Ruck speed (3.82) slowest in R1 — could be exposed vs fast-ruck teams"},
+  "Dolphins":              {str:"FPCR of 4.84 — best in R1 by a distance. Scored 30 pts from just 6.19 ETxP. All 5 tries from outside/edge, showing unique threat profile",concern:"14 errors and 65% completion rate. If their try-scoring efficiency drops in any round they'll struggle — defence still a concern"},
+  "Gold Coast Titans":     {str:"19.99 ETxP (2nd highest R1) shows they created legitimate chances — this is a better side than 10-50 suggests",concern:"FPCR 0.50 — worst in R1. Created more field position value than 13 other teams but wasted it entirely. 0 dominant tackles is structural"},
+  "Melbourne Storm":       {str:"FPCR 2.86 with 3 of 9 tries from long range — true Storm DNA. +9 net error differential completely overwhelmed Eels",concern:"86.15% tackle efficiency (lowest winning side). Three consecutive repeat sets conceded late shows defensive fatigue patterns worth monitoring"},
+  "Manly Sea Eagles":      {str:"12.99 ETxP despite the loss — competitive. Strong first half field position shows attacking capability when set right",concern:"49 missed tackles is alarming — worst R1. Research shows missed tackle outcomes >10 in own 20m zone leads to cascade scoring. Needs fixing"},
+  "New Zealand Warriors":  {str:"FPCR 2.71 — doubled their ETxP value. Warriors' ball-in-hand style converts possession to points efficiently under Webster",concern:"47 missed tackles + 78.98% tackle efficiency = worst R1 duo. Need a smarter defensive system — Warriors' current structure leaks when possession flips"},
+  "Newcastle Knights":     {str:"Good defensive system held firm against Cowboys' 55 red zone PTBs. 5 tries from 5 scorers shows attacking width",concern:"12 errors is high for a winner. Cowboys outgained them on every attacking metric yet Knights won — ETxP conversion vulnerability exposed"},
+  "North Queensland Cowboys":{str:"25.2 ETxP (highest R1 by far) and 55 red zone PTBs — dominated field position. Taumalolo running an elite RMOE",concern:"FPCR 0.71 — worst non-BYE R1 conversion. All that field position produced only 18 pts. Clinical finish and set-end play quality was diabolical"},
+  "Parramatta Eels":       {str:"Only 8.8 ETxP but actually defended fairly well given Storm's relentless repeat set generation. High tackle count showed effort",concern:"17 errors (2nd worst R1) and 63% completion rate is catastrophic. Ruck speed (3.79) slow — giving Storm's defensive reshape time to set"},
+  "Penrith Panthers":      {str:"0 pts conceded + best DEF CONV ratio + 20 repeat sets earned. Classic Panthers blueprint: +5 net errors, territory control, clinical",concern:"FPCR 1.63 — conservative. Only 2 line breaks from 1,832m and 58% possession. Under-utilising field position in attack — will become important in finals"},
+  "South Sydney Rabbitohs":{str:"20.4 ETxP with 20 repeat sets shows Dolphins couldn't contain them in territory. Hubner try chain off 5 consecutive set restarts was elite",concern:"Conceded 30 in second half. Defensive lapses once Dolphins switched to speed ball is a systemic issue — positioning under fatigue needs work"},
+  "St George Illawarra Dragons":{str:"88% completion (best R1) shows set discipline. 14.1 ETxP in a game they eventually lost — competitive enough",concern:"FPCR 0.99 on attacking end — only 1 line break from 1,752m. Completing sets but not threatening enough. Set-end quality is the gap"},
+  "Sydney Roosters":       {str:"6 line breaks shows attacking capability. FPCR 1.45 reasonable but 11 penalties (worst R1) killed their defensive rhythm",concern:"11 penalties (worst R1) + 13 errors. Discipline under pressure is systemic issue. Warriors' possession-dominant style destroyed them"},
+  "Wests Tigers":          {str:"BYE Round 1 — no data. Terrell May (prop) avg 162m/game in 2026, Fonua Pole showing elite run consistency (69% above expected)",concern:"BYE — will face immediate test in Round 2 against a rested opponent"},
+};
+
+// ── PLAYER DATA ──────────────────────────────────────────────────
+// Estimated R1 metrics: carries, metres, LB, tryContrib, domTackles, errors
+// RMOE = (actual m/carry) - positional expected (FB:9.5, W:8.5, C:8.0, 5/8:7.5, HB:7.5, L:9.0, 2R:8.5, P:8.0, H:7.0)
+// Error Rate = carries / errors (higher = more reliable)
+const PLAYERS = [
+  // position_type: back/forward/spine
+  {name:"Sua Fa'alogo",   team:"Melbourne Storm",  pri:"4B2C8F",pos:"Fullback",  type:"back",
+   carries:24,metres:218,lb:3,tries:1,ta:1,domTck:3,errors:1,miss:2,
+   note:"Orchestrated Storm's long-range try machine. 3 line breaks in 80 mins is elite."},
+  {name:"Nathan Cleary",  team:"Penrith Panthers", pri:"221F1F",pos:"Halfback",  type:"spine",
+   carries:16,metres:108,lb:1,tries:0,ta:2,domTck:1,errors:0,miss:1,
+   note:"0 errors on 16 carries + 45 kicks (1890m territory). Defensive perfection."},
+  {name:"Braydon Trindall",team:"Cronulla Sharks", pri:"00ABDF",pos:"Halfback",  type:"spine",
+   carries:13,metres:98,lb:2, tries:0,ta:3,domTck:1,errors:1,miss:2,
+   note:"Led 22 repeat sets earned. Non-yardage usage rate = elite set-end management."},
+  {name:"Kalyn Ponga",    team:"Newcastle Knights",pri:"C1121F",pos:"Fullback",  type:"back",
+   carries:22,metres:192,lb:2,tries:1,ta:1,domTck:2,errors:0,miss:3,
+   note:"Best individual R1 display. Elite RMOE vs Cowboys' ruck pressure."},
+  {name:"Hamiso Tabuai-Fidow",team:"Dolphins",    pri:"E32D2D",pos:"Fullback",  type:"back",
+   carries:20,metres:178,lb:1,tries:1,ta:1,domTck:2,errors:1,miss:4,
+   note:"Dolphins 4.84 FPCR — Tabuai-Fidow's speed-ball exploit was the fulcrum."},
+  {name:"James Tedesco",  team:"Sydney Roosters",  pri:"CC0000",pos:"Fullback",  type:"back",
+   carries:24,metres:212,lb:2,tries:1,ta:0,domTck:3,errors:1,miss:5,
+   note:"Best individual in a losing side. 212m despite 11-penalty chaos around him."},
+  {name:"Jason Taumalolo",team:"North Queensland Cowboys",pri:"002B5C",pos:"Prop",type:"forward",
+   carries:18,metres:162,lb:0,tries:0,ta:0,domTck:3,errors:2,miss:1,
+   note:"Cowboys' 25.2 ETxP but poor FPCR — Taumalolo ran hard but set-end play failed him."},
+  {name:"Selwyn Cobbo",   team:"Dolphins",         pri:"E32D2D",pos:"Winger",   type:"back",
+   carries:20,metres:188,lb:2,tries:2,ta:0,domTck:1,errors:0,miss:3,
+   note:"2 tries from wide edge plays. Key contributor to Dolphins' FPCR of 4.84."},
+  {name:"Matt Burton",    team:"Canterbury Bulldogs",pri:"00539B",pos:"Five-Eighth",type:"spine",
+   carries:14,metres:130,lb:1,tries:0,ta:1,domTck:1,errors:2,miss:2,
+   note:"Orchestrated all 2,333m Bulldogs run. High RMOE for a five-eighth."},
+  {name:"William Kennedy",team:"Cronulla Sharks",  pri:"00ABDF",pos:"Fullback",  type:"back",
+   carries:20,metres:152,lb:2,tries:1,ta:2,domTck:2,errors:0,miss:2,
+   note:"First scored, then created repeat set chains. Disciplinary maestro."},
+  {name:"Jackson Ford",   team:"New Zealand Warriors",pri:"0A4064",pos:"Prop",   type:"forward",
+   carries:16,metres:155,lb:2,tries:0,ta:0,domTck:4,errors:0,miss:1,
+   note:"0 errors on 16 carries at prop. Key to Warriors' +5 net error differential."},
+  {name:"Haumole Olakau'atu",team:"Manly Sea Eagles",pri:"6B1B30",pos:"Second Row",type:"forward",
+   carries:20,metres:172,lb:2,tries:1,ta:1,domTck:3,errors:0,miss:6,
+   note:"Best Sea Eagles player despite the loss. 172m was legitimate attacking threat."},
+  {name:"Tolutau Koula",  team:"Manly Sea Eagles",  pri:"6B1B30",pos:"Centre",  type:"back",
+   carries:18,metres:168,lb:1,tries:2,ta:0,domTck:1,errors:0,miss:4,
+   note:"2 tries as Sea Eagles fought back. Playing at centre instead of fullback."},
+  {name:"Dylan Edwards",  team:"Penrith Panthers",  pri:"221F1F",pos:"Fullback",  type:"back",
+   carries:26,metres:225,lb:0,tries:1,ta:0,domTck:2,errors:1,miss:3,
+   note:"Highest R1 metres from a fullback. Consistent yardage player in Panthers' territory game."},
+  {name:"Payne Haas",     team:"Brisbane Broncos",  pri:"7B3F00",pos:"Prop",    type:"forward",
+   carries:18,metres:162,lb:0,tries:0,ta:0,domTck:2,errors:3,miss:2,
+   note:"Physical but 3 errors contributed to Broncos' 19-error R1 nightmare."},
+  {name:"Patrick Carrigan",team:"Brisbane Broncos",  pri:"7B3F00",pos:"Lock",   type:"forward",
+   carries:16,metres:138,lb:0,tries:0,ta:0,domTck:4,errors:0,miss:2,
+   note:"Sole positive in Broncos' 0-26 loss. 138m and 0 errors while teammates gave away 19."},
+  {name:"Roger Tuivasa-Sheck",team:"New Zealand Warriors",pri:"0A4064",pos:"Centre",type:"back",
+   carries:16,metres:148,lb:1,tries:2,ta:0,domTck:1,errors:1,miss:4,
+   note:"2 tries in Warriors' dominant first half. High involvement rate for a centre."},
+  {name:"Lachlan Galvin", team:"Canterbury Bulldogs",pri:"00539B",pos:"Halfback",type:"spine",
+   carries:12,metres:118,lb:1,tries:0,ta:1,domTck:1,errors:1,miss:1,
+   note:"Set the attacking tempo with Burton. 2,333m team effort had his fingerprints."},
+  {name:"Hudson Young",   team:"Canberra Raiders",  pri:"6CBE45",pos:"Second Row",type:"forward",
+   carries:15,metres:138,lb:1,tries:1,ta:0,domTck:4,errors:0,miss:2,
+   note:"Key try in Raiders comeback win. Dominant tackle count shows defensive impact."},
+  {name:"Kaeo Weekes",    team:"Canberra Raiders",  pri:"6CBE45",pos:"Fullback",  type:"back",
+   carries:20,metres:172,lb:2,tries:1,ta:1,domTck:2,errors:1,miss:3,
+   note:"Orchestrated Raiders' 14.8 ETxP despite first 10 mins without ball."},
+  {name:"Latrell Mitchell",team:"South Sydney Rabbitohs",pri:"007D40",pos:"Centre",type:"back",
+   carries:14,metres:125,lb:2,tries:1,ta:0,domTck:2,errors:0,miss:2,
+   note:"High RMOE per carry. Rabbitohs' 20 repeat sets generated around his carries."},
+  {name:"Addin Fonua-Blake",team:"Cronulla Sharks",  pri:"00ABDF",pos:"Prop",   type:"forward",
+   carries:16,metres:145,lb:1,tries:0,ta:0,domTck:6,errors:0,miss:1,
+   note:"6 dominant tackles + 145m. The engine behind Sharks' repeat set dominance."},
+  {name:"Cameron Murray", team:"South Sydney Rabbitohs",pri:"007D40",pos:"Lock", type:"forward",
+   carries:12,metres:98,lb:1,tries:0,ta:1,domTck:5,errors:0,miss:2,
+   note:"High involvement rate with 5 dominant tackles. Rabbitohs' structural backbone."},
+  {name:"Hamish Stewart", team:"St George Illawarra Dragons",pri:"C8102E",pos:"Lock",type:"forward",
+   carries:10,metres:92,lb:0,tries:0,ta:0,domTck:6,errors:0,miss:2,
+   note:"Defensive pillar in a narrow 14-15 loss. Best tackle efficiency in his team."},
+];
+
+// Positional expected metres per carry
+const POS_EXP = {"Fullback":9.5,"Winger":8.5,"Centre":8.0,"Five-Eighth":7.5,"Halfback":7.5,"Lock":9.0,"Second Row":8.5,"Prop":8.0,"Hooker":7.0};
+const FORWARD_POS = ["Prop","Hooker","Second Row","Lock"];
+const SPINE_POS   = ["Halfback","Five-Eighth"];
+
+// ── COMPUTE RATINGS ───────────────────────────────────────────────
+(function(){
+  const pl=TEAMS.filter(t=>t.res!=="BYE");
+  const mn=k=>Math.min(...pl.map(t=>t[k]));
+  const mx=k=>Math.max(...pl.map(t=>t[k]));
+  const nm=(v,a,b)=>v==null||(b-a)===0?5:+((v-a)/(b-a)*10).toFixed(1);
+  const ni=(v,a,b)=>v==null||(b-a)===0?5:+((1-(v-a)/(b-a))*10).toFixed(1);
+  const [rma,rmb]=[mn('runM'),mx('runM')],[gla,glb]=[mn('gain'),mx('gain')];
+  const [lba,lbb]=[mn('lb'),mx('lb')],[tsa,tsb]=[mn('ts'),mx('ts')];
+  const [cpa,cpb]=[mn('comp'),mx('comp')],[xpa,xpb]=[mn('xp'),mx('xp')];
+  const [efa,efb]=[mn('eff'),mx('eff')],[msa,msb]=[mn('miss'),mx('miss')];
+  const [era,erb]=[mn('err'),mx('err')],[taa,tab]=[mn('ta'),mx('ta')];
+  TEAMS.forEach(t=>{
+    if(t.res==="BYE"){t.att=null;t.def=null;t.ovr=null;return;}
+    t.att=+((nm(t.runM,rma,rmb)+nm(t.gain,gla,glb)+nm(t.lb,lba,lbb)+
+             nm(t.ts,tsa,tsb)+nm(t.comp,cpa,cpb)+nm(t.xp,xpa,xpb))/6).toFixed(1);
+    t.def=+((nm(t.eff,efa,efb)+ni(t.miss,msa,msb)+ni(t.err,era,erb)+ni(t.ta,taa,tab))/4).toFixed(1);
+    t.ovr=+((t.att+t.def)/2).toFixed(1);
+    t.fpcr=t.etxp?+(t.pf/t.etxp).toFixed(2):0;
+    t.defConv=ETXP_CONCEDED[t.name]&&t.pa?+(ETXP_CONCEDED[t.name]/t.pa).toFixed(2):null;
+    // Set Control Score: completion% normalised + inverse errors + repeat sets normalised
+    const errN=ni(t.err,era,erb), compN=nm(t.comp,cpa,cpb), rsN=t.repSets/22*10;
+    t.setCtrl=+((compN+errN+rsN)/3).toFixed(1);
+    t.pressAcc=t.repSets*2+(16-t.pen);  // repeat sets × 2 + (inverse penalty count proxy)
+  });
+  // Compute player RMOE
+  PLAYERS.forEach(p=>{
+    const posExp=POS_EXP[p.pos]||8.0;
+    const mpc=p.carries?+(p.metres/p.carries).toFixed(2):0;
+    p.rmoe=+(mpc-posExp).toFixed(2);
+    p.errorRate=p.errors===0?p.carries*2:+(p.carries/p.errors).toFixed(1);
+    p.tryContrib=+(p.tries+(p.ta*0.5)).toFixed(1);
+    p.involvRate=+(((p.carries+p.domTck)/(p.carries+p.domTck+p.miss+2))*100).toFixed(0);
+  });
+})();
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function T(n){return TEAMS.find(t=>t.name===n)||{};}
+function rc(v){return v>=7?'#4ADE80':v>=5?'#F0C040':'#F87171';}
+function fpcrc(v){return v>=2.5?'#4ADE80':v>=1.2?'#F0C040':'#F87171';}
+function rbar(v,mx=10){
+  if(v==null)return'—';
+  const pct=v/mx*100,col=rc(v);
+  return `<div class="rbar"><div class="rbar-bg"><div class="rbar-fill" style="width:${pct}%;background:${col}"></div></div><span class="rnum" style="color:${col}">${v}</span></div>`;
+}
+function resBadge(r){return`<span class="${r.toLowerCase()}">${r}</span>`;}
+function chip(t){return`<span class="chip"><span class="dot" style="background:#${t.pri}"></span>${t.name}</span>`;}
+function rankB(r){return r===1?`<span class="r1">🥇1</span>`:r===2?`<span class="r2">🥈2</span>`:r===3?`<span class="r3">🥉3</span>`:`<span class="rn">${r}</span>`;}
+function rmoeCol(v){return v>1?'#4ADE80':v>0?'#A0E080':v>-1?'#F0C040':'#F87171';}
+
+// ── BUILD: OVERVIEW ───────────────────────────────────────────────
+function buildOverview(){
+  const pl=TEAMS.filter(t=>t.res!=="BYE");
+  const topFPCR=[...pl].sort((a,b)=>b.fpcr-a.fpcr)[0];
+  const topDef=[...pl].sort((a,b)=>b.def-a.def)[0];
+  const topXP=[...pl].sort((a,b)=>b.xp-a.xp)[0];
+  const worstFPCR=[...pl].sort((a,b)=>a.fpcr-b.fpcr)[0];
+
+  const ladder=computeLadder();
+  const ss=computeTeamSeasonStats();
+  const topScorer=ladder.slice().sort((a,b)=>(ss[b.name]?.avgPF||0)-(ss[a.name]?.avgPF||0))[0];
+  const bestDef=ladder.slice().sort((a,b)=>(ss[a.name]?.avgPA||99)-(ss[b.name]?.avgPA||99))[0];
+  const topPts=ladder[0];
+  const biggestWin=ladder.reduce((b,lt)=>{const s=ss[lt.name];const w=s?.games?.filter(g=>g.win).reduce((bw,g)=>g.margin>bw.margin?g:bw,{margin:-1})||{margin:-1};return w.margin>b.margin?{...w,team:lt.short}:b;},{margin:-1,team:'',pf:0,pa:0});
+  // Season consistency & form (computed before tiles)
+  const _sdFn=(arr)=>{if(!arr.length)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;return +Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length).toFixed(1);};
+  const _cons=ladder.map(lt=>{const s=ss[lt.name];const sc=(s?.games||[]).map(g=>g.pf);return {lt,sd:sc.length>2?_sdFn(sc):99};}).sort((a,b)=>a.sd-b.sd);
+  const _mCon=_cons[0];
+  const _imp=ladder.map(lt=>{const s=ss[lt.name];const gm=(s?.games||[]).slice().sort((a,b)=>a.r-b.r);const ea=gm.slice(0,4);const la=gm.slice(-4);const eA=ea.length?ea.reduce((a,g)=>a+g.pf,0)/ea.length:0;const lA=la.length?la.reduce((a,g)=>a+g.pf,0)/la.length:0;return {lt,delta:+(lA-eA).toFixed(1)};}).sort((a,b)=>b.delta-a.delta);
+  const _bImp=_imp[0];const _wImp=_imp[_imp.length-1];
+  document.getElementById('hub-tiles').innerHTML=[
+    {l:"Rounds Played",v:"16",s:"R1–R16 · 2026 Season"},
+    {l:"Ladder Leader",v:topPts?.short||'—',s:`${topPts?.pts||0} pts · ${topPts?.w}W-${topPts?.l}L`},
+    {l:"Top Scorer",v:topScorer?.short||'—',s:`${ss[topScorer?.name]?.avgPF||0} avg pts/game`},
+    {l:"Best Defence",v:bestDef?.short||'—',s:`${ss[bestDef?.name]?.avgPA||0} avg pts conceded`},
+    {l:"Biggest Win",v:biggestWin.team||'—',s:`${biggestWin.pf}–${biggestWin.pa} (${biggestWin.margin>0?'+':''}${biggestWin.margin})`},
+    {l:"Most Consistent",v:_mCon?.lt?.short||'—',s:`σ${_mCon?.sd}pts variance — most reliable scorer`},
+    {l:"Best Improver",v:_bImp?.lt?.short||'—',s:`+${_bImp?.delta}pts/gm late-season lift`},
+    {l:"Form Alert",v:_wImp?.lt?.short||'—',s:`${_wImp?.delta}pts/gm decline — watch closely`},
+  ].map(t=>`<div class="tile"><div class="tile-label">${t.l}</div><div class="tile-value">${t.v}</div><div class="tile-sub">${t.s}</div></div>`).join('');
+
+  // Season attack rankings (avg PF/game)
+  const atkRanked=ladder.slice().sort((a,b)=>(ss[b.name]?.avgPF||0)-(ss[a.name]?.avgPF||0));
+  const maxAvgPF=ss[atkRanked[0]?.name]?.avgPF||1;
+  document.getElementById('fpcr-top').innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Season Attack — Avg Points Scored/Game (R1–R16)</div>`+atkRanked.map((lt,i)=>{
+    const s=ss[lt.name];
+    const avg=s?.avgPF||0;
+    const bar=Math.round((avg/maxAvgPF)*100);
+    const col=avg>=30?'#4ADE80':avg>=24?'#FACC15':'#F87171';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1E1E38">
+      <span style="color:var(--muted);font-size:12px;min-width:16px;font-weight:800">${i+1}</span>
+      ${chip(lt)}
+      <div style="flex:1;height:6px;background:#252545;border-radius:3px;overflow:hidden">
+        <div style="width:${bar}%;height:6px;background:${col};border-radius:3px"></div>
+      </div>
+      <span style="margin-left:8px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;color:var(--muted)">${s?.totalPF||0} total · ${s?.gp||0}gp</span>
+        <span style="font-weight:900;font-size:14px;color:${col}">${avg}</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  // Season defence rankings (avg PA/game — lower is better)
+  const defRanked=ladder.slice().sort((a,b)=>(ss[a.name]?.avgPA||99)-(ss[b.name]?.avgPA||99));
+  const maxAvgPA=Math.max(...defRanked.map(lt=>ss[lt.name]?.avgPA||0))||1;
+  document.getElementById('ruck-speed-chart').innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Season Defence — Avg Points Conceded/Game (R1–R16)</div>`+defRanked.map((lt,i)=>{
+    const s=ss[lt.name];
+    const avg=s?.avgPA||0;
+    const bar=Math.round((avg/maxAvgPA)*100);
+    const col=avg<=18?'#4ADE80':avg<=24?'#FACC15':'#F87171';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+      <span style="font-size:10px;font-weight:700;color:var(--muted);min-width:16px;text-align:right">${i+1}</span>
+      <span style="font-size:10px;font-weight:700;color:white;min-width:60px">${lt.short}</span>
+      <div style="flex:1;height:8px;background:#252545;border-radius:4px;overflow:hidden">
+        <div style="width:${bar}%;height:8px;background:${col};border-radius:4px"></div>
+      </div>
+      <span style="font-size:11px;font-weight:800;color:${col};min-width:42px;text-align:right">${avg}/g</span>
+    </div>`;
+  }).join('');
+
+  // Season-level analyst insights (computed from R1-R16 data)
+  const ldr=ladder[0];const ldrS=ss[ldr?.name];
+  const atk1=atkRanked[0];const atk1S=ss[atk1?.name];
+  const def1=defRanked[0];const def1S=ss[def1?.name];
+  const atk17=atkRanked[atkRanked.length-1];const atk17S=ss[atk17?.name];
+  const def17=defRanked[defRanked.length-1];const def17S=ss[def17?.name];
+  const stdDev=(arr)=>{if(!arr.length)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length).toFixed(1);};
+  const consistency=ladder.map(lt=>{const s=ss[lt.name];const scores=(s?.games||[]).map(g=>g.pf);return {lt,sd:scores.length>2?+stdDev(scores):99};}).sort((a,b)=>a.sd-b.sd);
+  const mostConsistent=consistency[0];
+  const improver=ladder.map(lt=>{
+    const s=ss[lt.name];const games=(s?.games||[]).slice().sort((a,b)=>a.r-b.r);
+    const early=games.slice(0,4);const late=games.slice(-4);
+    const eAvg=early.length?early.reduce((a,g)=>a+g.pf,0)/early.length:0;
+    const lAvg=late.length?late.reduce((a,g)=>a+g.pf,0)/late.length:0;
+    return {lt,delta:+(lAvg-eAvg).toFixed(1),lAvg:+lAvg.toFixed(1),eAvg:+eAvg.toFixed(1)};
+  }).sort((a,b)=>b.delta-a.delta);
+  const bestImprover=improver[0];const worstImprover=improver[improver.length-1];
+  const insights=[
+    {icon:"🏆",title:`${ldr?.short} Lead the Competition — ${ldr?.w}W from ${ldrS?.gp||0} Games`,body:`${ldr?.name} sit top of the ladder with ${ldr?.pts} points (${ldr?.w}W-${ldr?.l}L). Averaging ${ldrS?.avgPF} points for and only ${ldrS?.avgPA} against across ${ldrS?.gp} games, they are the most complete team of the 2026 season so far.`},
+    {icon:"⚡",title:`${atk1?.short} Lead Attack — ${atk1S?.avgPF} Avg Points/Game`,body:`${atk1?.name} are the most potent attacking side over R1–R16, averaging ${atk1S?.avgPF} points per game from ${atk1S?.gp} appearances (${atk1S?.totalPF} total). That's ${+(atk1S?.avgPF - atk17S?.avgPF).toFixed(1)} more per game than the competition's lowest-scoring attack (${atk17?.short}, ${atk17S?.avgPF}/g).`},
+    {icon:"🔒",title:`${def1?.short} Best Defence — ${def1S?.avgPA} Avg Conceded/Game`,body:`${def1?.name} have been the competition's toughest defensive unit, conceding just ${def1S?.avgPA} points per game across ${def1S?.gp} games. The gap to the softest defence (${def17?.short}, ${def17S?.avgPA}/g) is ${+(def17S?.avgPA - def1S?.avgPA).toFixed(1)} points per game — a chasm that compounds across finals.`},
+    {icon:"📐",title:`${mostConsistent?.lt?.short} Most Consistent Scorers — σ${mostConsistent?.sd} Pts`,body:`${mostConsistent?.lt?.name} show the least variance in their scoring output (standard deviation ${mostConsistent?.sd} pts), suggesting a structured and repeatable attacking system. Consistent scorers typically perform better in finals when under pressure — the gameplan doesn't need to change.`},
+    {icon:"📈",title:`${bestImprover?.lt?.short} Biggest Attacking Improver — +${bestImprover?.delta} Pts/Game`,body:`${bestImprover?.lt?.name} have lifted their scoring average by ${bestImprover?.delta} points per game from their first four rounds (${bestImprover?.eAvg}/g) to their last four (${bestImprover?.lAvg}/g). This trajectory is a major flag heading into the second half of the season.`},
+    {icon:"⚠️",title:`${worstImprover?.lt?.short} Concerning Scoring Drop — ${worstImprover?.delta} Pts/Game`,body:`${worstImprover?.lt?.name} have regressed the most in attack across the season — from ${worstImprover?.eAvg}/g in their opening four rounds down to ${worstImprover?.lAvg}/g recently. A ${Math.abs(worstImprover?.delta)}-point per game drop raises questions about form, injuries, or structural issues in their attacking system.`},
+  ];
+  document.getElementById('analyst-insights').innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px">
+    ${insights.map(i=>`<div style="background:var(--card2);border-radius:10px;padding:14px">
+      <div style="font-size:14px;margin-bottom:6px">${i.icon} <strong style="color:white;font-size:12px">${i.title}</strong></div>
+      <p style="font-size:11px;color:#AAB8CC;line-height:1.6">${i.body}</p>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── BUILD: RESULTS (multi-round) ──────────────────────────────────
+let currentRound=1;
+function buildResults(){
+  // Build round selector
+  const selectorHtml=ALL_ROUNDS.map(rd=>`
+    <button onclick="selectRound(${rd.round},this)" class="fbtn${rd.round===currentRound?' active':''}" style="min-width:38px;padding:5px 10px">
+      R${rd.round}
+    </button>`).join('');
+  document.getElementById('round-selector').innerHTML=selectorHtml;
+  renderRound(currentRound);
+}
+function selectRound(n,btn){
+  currentRound=n;
+  document.querySelectorAll('#round-selector .fbtn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderRound(n);
+}
+function renderRound(n){
+  const rd=ALL_ROUNDS.find(r=>r.round===n);
+  if(!rd)return;
+  document.getElementById('round-title').textContent=rd.name+' · '+rd.dates;
+  // Byes
+  const byeHtml=rd.byes&&rd.byes.length?`<div style="margin-bottom:14px;padding:10px 14px;background:var(--bye);border-radius:8px;color:var(--byet);font-size:11px;font-weight:700">
+    BYE: ${rd.byes.join(' · ')}
+  </div>`:'';
+  document.getElementById('round-byes').innerHTML=byeHtml;
+  // Match cards
+  document.getElementById('matches-grid').innerHTML=rd.matches.map(g=>{
+    const ht=T(g.home)||{pri:'444444',sec:'ffffff',short:g.home.split(' ').pop()};
+    const at=T(g.away)||{pri:'444444',sec:'ffffff',short:g.away.split(' ').pop()};
+    const hw=g.hs>g.as;
+    // Only show ETxP stats for R1 (have detailed data)
+    const isR1=n===1;
+    const maxEtxp=isR1?Math.max(ht.etxp||0,at.etxp||0)||1:1;
+    return `<div class="mc">
+      <div class="mc-head">
+        <span style="font-weight:700">R${rd.round}</span>
+        <span>${g.venue||'—'}</span>
+        <span>${g.gp?'⚡ GP':''}</span>
+      </div>
+      <div class="mc-body">
+        <div class="mc-teams">
+          <div class="mc-team">
+            <div style="width:32px;height:32px;background:#${ht.pri};border-radius:8px;margin:0 auto 6px;border:2px solid #${hw?ht.sec||'fff':'333'}"></div>
+            <div class="mc-tname">${ht.short||g.home.split(' ').pop()}</div>
+            <div class="mc-tres" style="color:${hw?'var(--green)':'var(--muted)'}">${hw?'WIN':'LOSS'}</div>
+          </div>
+          <div style="text-align:center;padding:0 6px">
+            <div style="display:flex;align-items:center;gap:2px">
+              <div class="mc-score ${hw?'win':'lose'}">${g.hs}</div>
+              <div class="mc-sep">–</div>
+              <div class="mc-score ${!hw?'win':'lose'}">${g.as}</div>
+            </div>
+            ${g.gp?'<div style="font-size:9px;color:var(--gold);font-weight:800;margin-top:2px">GOLDEN POINT</div>':''}
+          </div>
+          <div class="mc-team">
+            <div style="width:32px;height:32px;background:#${at.pri};border-radius:8px;margin:0 auto 6px;border:2px solid #${!hw?at.sec||'fff':'333'}"></div>
+            <div class="mc-tname">${at.short||g.away.split(' ').pop()}</div>
+            <div class="mc-tres" style="color:${!hw?'var(--green)':'var(--muted)'}">${!hw?'WIN':'LOSS'}</div>
+          </div>
+        </div>
+        ${isR1?`<div class="mc-stats">
+          <div class="mc-stat"><div class="mc-stat-l">POSSESSION</div><div class="mc-stat-v"><span>${ht.poss??'—'}%</span><span style="color:#444">|</span><span>${at.poss??'—'}%</span></div></div>
+          <div class="mc-stat"><div class="mc-stat-l">RUN METRES</div><div class="mc-stat-v"><span class="${(ht.runM||0)>(at.runM||0)?'hi':''}">${ht.runM??'—'}</span><span style="color:#444">|</span><span class="${(at.runM||0)>(ht.runM||0)?'hi':''}">${at.runM??'—'}</span></div></div>
+          <div class="mc-stat"><div class="mc-stat-l">ERRORS</div><div class="mc-stat-v"><span class="${(ht.err||99)<(at.err||99)?'hi':''}">${ht.err??'—'}</span><span style="color:#444">|</span><span class="${(at.err||99)<(ht.err||99)?'hi':''}">${at.err??'—'}</span></div></div>
+        </div>
+        <div class="etxp-bars">
+          <div class="etxp-row"><div class="etxp-label">${ht.short||'HOME'}</div><div class="etxp-bg"><div class="etxp-fill" style="width:${(ht.etxp/maxEtxp*100).toFixed(0)}%;background:#${ht.pri}"></div></div><div class="etxp-val" style="color:${fpcrc(ht.fpcr||0)}">${ht.etxp??'—'}</div></div>
+          <div class="etxp-row"><div class="etxp-label">${at.short||'AWAY'}</div><div class="etxp-bg"><div class="etxp-fill" style="width:${(at.etxp/maxEtxp*100).toFixed(0)}%;background:#${at.pri}"></div></div><div class="etxp-val" style="color:${fpcrc(at.fpcr||0)}">${at.etxp??'—'}</div></div>
+        </div>
+        <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:4px">ETxP / FPCR — R1 Advanced Stats</div>`
+        :`<div style="padding:8px 0;text-align:center;font-size:11px;color:var(--muted)">
+          Margin: <strong style="color:${hw?'var(--green)':'var(--red)'}"> ${hw?'+':'-'}${Math.abs(g.hs-g.as)}</strong> &nbsp;|&nbsp; Total Points: <strong>${g.hs+g.as}</strong>
+        </div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── BUILD: LADDER ──────────────────────────────────────────────────
+function buildLadder(){
+  const ladder=computeLadder();
+  const finals=8;
+  document.getElementById('ladder-body').innerHTML=ladder.map((t,i)=>{
+    const inFinals=i<finals;
+    const bg=i<1?'background:linear-gradient(90deg,#0D1A10,#0D1828)':i<finals?'background:#0D1828':'';
+    const pdCol=t.pd>0?'var(--green)':t.pd<0?'var(--red)':'var(--muted)';
+    const posCol=i===0?'var(--gold)':i<4?'var(--green)':i<8?'var(--accent)':'var(--muted)';
+    return `<tr style="${bg}">
+      <td style="font-weight:900;color:${posCol}">${i+1}</td>
+      <td>${chip(t)}</td>
+      <td style="color:var(--muted)">${t.gp}</td>
+      <td style="color:var(--green);font-weight:800">${t.w}</td>
+      <td style="color:var(--red);font-weight:700">${t.l}</td>
+      <td>${t.d||0}</td>
+      <td>${t.pf}</td><td>${t.pa}</td>
+      <td style="color:${pdCol};font-weight:800">${t.pd>0?'+':''}${t.pd}</td>
+      <td style="font-weight:900;font-size:15px;color:${inFinals?'var(--green)':'var(--muted)'}">${t.pts}</td>
+      <td style="font-size:10px;color:${inFinals?'var(--green)':'var(--red)'}">
+        ${inFinals?'✅ FINALS':'❌'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BUILD: ADVANCED METRICS ─────────────────────────────────────────
+function buildAdvanced(){
+  const pl=[...TEAMS].filter(t=>t.res!=="BYE");
+  const mkCard=(title,sub,icon,items,valKey,unit,higher,maxVal)=>{
+    const sorted=[...pl].sort((a,b)=>higher?(b[valKey]-a[valKey]):(a[valKey]-b[valKey]));
+    const mn=Math.min(...sorted.map(t=>t[valKey]));
+    const mx=Math.max(...sorted.map(t=>t[valKey]));
+    return `<div class="adv-card">
+      <div class="adv-card-h">
+        <span class="adv-card-icon">${icon}</span>
+        <div><div class="adv-card-title">${title}</div><div class="adv-card-sub">${sub}</div></div>
+      </div>
+      ${sorted.slice(0,8).map((t,i)=>{
+        const pct=(mx-mn)===0?50:((t[valKey]-mn)/(mx-mn))*100;
+        const barPct=higher?pct:(100-pct);
+        const col=higher?rc(barPct/10):rc((100-barPct)/10);
+        return `<div class="adv-row">
+          <span class="adv-rank">${i+1}</span>
+          <span class="adv-team">${chip(t)}</span>
+          <div class="adv-bar-bg"><div class="adv-bar-fill" style="width:${barPct.toFixed(0)}%;background:${col}"></div></div>
+          <span class="adv-val" style="color:${col}">${t[valKey]??'—'}${unit}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  };
+
+  document.getElementById('adv-grid-1').innerHTML=
+    mkCard("Field Position Value (ETxP)","Expected pts from field position — gold standard metric","📐","","etxp","",true,26)+
+    mkCard("Field Position Conversion Rate","Actual pts ÷ ETxP — efficiency of possession","⚡","","fpcr","×",true,5)+
+    mkCard("Repeat Sets Earned","Set restarts + 6-agains awarded","🔄","","repSets","",true,22)+
+    mkCard("Net Error Differential","Opponent errors minus own errors","🎯","","netErr","",true,10);
+
+  document.getElementById('adv-grid-2').innerHTML=
+    mkCard("Red Zone PTBs","Play-the-balls inside opponent's 20m","🏴","","rzPtbs","",true,55)+
+    mkCard("Ruck Speed (PTB Avg)","Seconds from tackle to play-the-ball (lower=better)","🕐","","ptb","s",false,3.3)+
+    mkCard("Set Control Score","Composite: completion+error+repeat sets","🧮","","setCtrl","",true,10)+
+    mkCard("Pressure Accumulation","Repeat sets × 2 + penalty differential","💥","","pressAcc","",true,60);
+
+  // Full table
+  const byAtt=[...pl].sort((a,b)=>b.att-a.att);
+  document.getElementById('adv-full-body').innerHTML=byAtt.map(t=>{
+    const nedCol=t.netErr>0?'var(--green)':t.netErr<0?'var(--red)':'var(--muted)';
+    const ruckCol=t.ptb<3.45?'var(--green)':t.ptb>3.75?'var(--amber)':'var(--text)';
+    return `<tr>
+      <td>${chip(t)}</td>
+      <td style="color:var(--accent);font-weight:800">${t.etxp}</td>
+      <td style="color:${fpcrc(t.fpcr)};font-weight:800">${t.fpcr}×</td>
+      <td style="color:${nedCol};font-weight:800">${t.netErr>0?'+':''}${t.netErr}</td>
+      <td>${t.repSets}</td>
+      <td style="font-weight:700">${t.rzPtbs}</td>
+      <td style="color:${ruckCol};font-weight:800">${t.ptb}s</td>
+      <td style="font-weight:800;color:${rc(t.setCtrl)}">${t.setCtrl}</td>
+      <td>${t.pressAcc}</td>
+      <td style="color:var(--accent);font-weight:700">${t.defConv??'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BUILD: PLAYERS ────────────────────────────────────────────────
+let posFilter='ALL';
+function filterByPos(p){
+  posFilter=p;
+  document.querySelectorAll('#page-players .fbtn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPlayers();
+}
+function filterPlayers(){renderPlayers();}
+function renderPlayers(){
+  const q=document.getElementById('player-search').value.toLowerCase();
+  const show=PLAYERS.filter(p=>{
+    const posMatch=posFilter==='ALL'||(posFilter==='back'&&p.type==='back')||(posFilter==='forward'&&p.type==='forward')||(posFilter==='spine'&&p.type==='spine');
+    return posMatch&&(p.name.toLowerCase().includes(q)||p.team.toLowerCase().includes(q));
+  });
+  const sorted=[...show].sort((a,b)=>(b.metres+b.tries*50)-(a.metres+a.tries*50));
+  document.getElementById('player-grid').innerHTML=sorted.map(p=>{
+    const rmoeCol2=p.rmoe>1?'var(--green)':p.rmoe>0?'#A0E080':p.rmoe>-1?'var(--amber)':'var(--red)';
+    const erCol=p.errorRate>=20?'var(--green)':p.errorRate>=10?'var(--amber)':'var(--red)';
+    const ovRtg=+((Math.min(10,(p.metres/200*10)*0.3+(p.rmoe>0?p.rmoe*1.5:0)*0.2+(p.tries+p.ta)*0.8+(p.domTck*0.3))).toFixed(1));
+    return `<div class="player-card">
+      <div class="pc-head">
+        <div class="pc-swatch" style="background:#${p.pri}">${p.pos.slice(0,2).toUpperCase()}</div>
+        <div>
+          <div class="pc-name">${p.name}</div>
+          <div class="pc-pos">${p.pos} · <span style="color:#${p.pri}">${p.team}</span></div>
+        </div>
+      </div>
+      <div class="pc-metrics">
+        <div class="pcm"><div class="pcm-l">RUN M</div><div class="pcm-v">${p.metres}</div></div>
+        <div class="pcm"><div class="pcm-l">CARRIES</div><div class="pcm-v">${p.carries}</div></div>
+        <div class="pcm"><div class="pcm-l">LINE BRK</div><div class="pcm-v" style="color:${p.lb>=2?'var(--green)':'var(--text)'}">${p.lb}</div></div>
+        <div class="pcm"><div class="pcm-l">TRIES</div><div class="pcm-v" style="color:${p.tries>=2?'var(--green)':'var(--text)'}">${p.tries}</div></div>
+        <div class="pcm"><div class="pcm-l">TRY CONTR</div><div class="pcm-v" style="color:var(--accent)">${p.tryContrib}</div></div>
+        <div class="pcm"><div class="pcm-l">DOM TCKL</div><div class="pcm-v" style="color:${p.domTck>=4?'var(--green)':'var(--text)'}">${p.domTck}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+        <div class="pcm">
+          <div class="pcm-l">RMOE/carry</div>
+          <div class="pcm-v ${p.rmoe>=0?'pos':'neg'}" style="color:${rmoeCol2}">${p.rmoe>0?'+':''}${p.rmoe}</div>
+        </div>
+        <div class="pcm">
+          <div class="pcm-l">Error Rate</div>
+          <div class="pcm-v" style="color:${erCol}">${p.errorRate}</div>
+        </div>
+        <div class="pcm">
+          <div class="pcm-l">Involv %</div>
+          <div class="pcm-v" style="color:var(--accent)">${p.involvRate}%</div>
+        </div>
+      </div>
+      <div class="pc-rating">
+        <div>
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:1px">R1 Rating</div>
+          <div class="pc-rating-val" style="color:${rc(ovRtg)}">${ovRtg}/10</div>
+        </div>
+        <div style="font-size:11px;color:#8899CC;flex:1;margin-left:10px;line-height:1.4">${p.note}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── SEASON STATS PER TEAM (from ALL_ROUNDS) ───────────────────────
+function computeTeamSeasonStats(){
+  const stats={};
+  TEAMS.forEach(t=>{stats[t.name]={games:[],totalPF:0,totalPA:0,gp:0,w:0,l:0};});
+  ALL_ROUNDS.forEach(rd=>{
+    rd.matches.forEach(m=>{
+      if(stats[m.home]!==undefined){
+        const win=m.hs>m.as;
+        stats[m.home].games.push({r:rd.round,name:rd.name,pf:m.hs,pa:m.as,win,opp:m.away,margin:m.hs-m.as});
+        stats[m.home].totalPF+=m.hs; stats[m.home].totalPA+=m.as;
+        stats[m.home].gp++; win?stats[m.home].w++:stats[m.home].l++;
+      }
+      if(stats[m.away]!==undefined){
+        const win=m.as>m.hs;
+        stats[m.away].games.push({r:rd.round,name:rd.name,pf:m.as,pa:m.hs,win,opp:m.home,margin:m.as-m.hs});
+        stats[m.away].totalPF+=m.as; stats[m.away].totalPA+=m.hs;
+        stats[m.away].gp++; win?stats[m.away].w++:stats[m.away].l++;
+      }
+    });
+  });
+  Object.values(stats).forEach(s=>{
+    s.avgPF=s.gp?+(s.totalPF/s.gp).toFixed(1):0;
+    s.avgPA=s.gp?+(s.totalPA/s.gp).toFixed(1):0;
+    s.maxPF=s.games.length?Math.max(...s.games.map(g=>g.pf)):0;
+    s.maxPA=s.games.length?Math.max(...s.games.map(g=>g.pa)):0;
+    s.bigWin=s.games.filter(g=>g.win).reduce((b,g)=>g.margin>b.margin?g:b,{margin:-99,pf:0,pa:0,opp:''});
+    s.bigLoss=s.games.filter(g=>!g.win).reduce((b,g)=>g.margin<b.margin?g:b,{margin:99,pf:0,pa:0,opp:''});
+    s.form=s.games.slice().sort((a,b)=>a.r-b.r).slice(-5).map(g=>g.win?'W':'L');
+  });
+  return stats;
+}
+
+// ── ROUND-BY-ROUND GRID ────────────────────────────────────────────
+function buildRoundGrid(mode){
+  // mode = 'scored' or 'conceded'
+  const ladder=computeLadder();
+  const ss=computeTeamSeasonStats();
+  const rounds=ALL_ROUNDS.map(r=>r.round);
+  const header=`<tr><th style="text-align:left;min-width:110px">TEAM</th>${rounds.map(r=>`<th style="min-width:44px">R${r}</th>`).join('')}<th>AVG</th><th>BEST</th><th>WORST</th></tr>`;
+  const rows=ladder.map(lt=>{
+    const s=ss[lt.name];
+    const t=TEAMS.find(x=>x.name===lt.name)||{pri:'444444'};
+    if(!s)return '';
+    const cells=rounds.map(r=>{
+      const g=s.games.find(x=>x.r===r);
+      if(!g){
+        // check if bye
+        const rd=ALL_ROUNDS.find(x=>x.round===r);
+        const isBye=rd&&rd.byes&&rd.byes.includes(lt.name);
+        return isBye?`<td class="b" style="font-size:9px">BYE</td>`:`<td style="color:var(--muted);font-size:9px">—</td>`;
+      }
+      const val=mode==='scored'?g.pf:g.pa;
+      const isGood=mode==='scored'?g.win:!g.win;
+      const bg=g.win?'#0D1F10':'#1F0D10';
+      const col=g.win?'var(--green)':'var(--red)';
+      return `<td style="background:${bg};border-radius:4px;padding:3px 5px">
+        <div style="font-size:10px;font-weight:900;color:${col}">${val}</div>
+        <div style="font-size:8px;color:${g.win?'#4ADE8088':'#F8717188'}">${g.win?'W':'L'}</div>
+      </td>`;
+    }).join('');
+    const avg=mode==='scored'?s.avgPF:s.avgPA;
+    const best=mode==='scored'?s.maxPF:Math.min(...s.games.map(g=>g.pa));
+    const worst=mode==='scored'?Math.min(...s.games.map(g=>g.pf)):s.maxPA;
+    const avgCol=mode==='scored'?(avg>=28?'var(--green)':avg>=20?'var(--amber)':'var(--red)'):(avg<=18?'var(--green)':avg<=24?'var(--amber)':'var(--red)');
+    return `<tr>
+      <td style="font-weight:700;white-space:nowrap">${chip({name:lt.name,short:lt.short,pri:t.pri})}</td>
+      ${cells}
+      <td style="font-weight:900;color:${avgCol}">${avg}</td>
+      <td style="color:var(--green);font-weight:800">${best}</td>
+      <td style="color:var(--red);font-weight:700">${worst}</td>
+    </tr>`;
+  }).join('');
+  return `<table><thead>${header}</thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── BUILD: ATTACK ─────────────────────────────────────────────────
+function buildAttack(){
+  const ss=computeTeamSeasonStats();
+  const ladder=computeLadder();
+  // Season scoring summary table
+  const seasonRows=ladder.slice().sort((a,b)=>{
+    return (ss[b.name]?.avgPF||0)-(ss[a.name]?.avgPF||0);
+  }).map((lt,i)=>{
+    const s=ss[lt.name];
+    const t=TEAMS.find(x=>x.name===lt.name)||{pri:'444444'};
+    if(!s||!s.gp)return '';
+    const avg=s.avgPF;
+    const avgCol=avg>=28?'var(--green)':avg>=22?'var(--amber)':'var(--red)';
+    const fiftyPlus=s.games.filter(g=>g.pf>=50).length;
+    const sub12=s.games.filter(g=>g.pf<=12).length;
+    const formHtml=s.form.map(f=>`<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${f==='W'?'#1A4A1A':'#4A1A1A'};color:${f==='W'?'var(--green)':'var(--red)'};font-size:8px;font-weight:900;line-height:14px;text-align:center">${f}</span>`).join('');
+    return `<tr>
+      <td>${rankB(i+1)}</td>
+      <td>${chip({name:lt.name,short:lt.short,pri:t.pri})}</td>
+      <td style="color:var(--muted)">${s.gp}</td>
+      <td style="font-weight:900;color:${avgCol};font-size:14px">${avg}</td>
+      <td style="font-weight:800;color:var(--text)">${s.totalPF}</td>
+      <td style="color:var(--green);font-weight:800">${s.maxPF}</td>
+      <td style="color:var(--red);font-weight:700">${Math.min(...s.games.map(g=>g.pf))}</td>
+      <td style="color:${fiftyPlus>=3?'var(--gold)':fiftyPlus>=1?'var(--amber)':'var(--muted)'};font-weight:800">${fiftyPlus}</td>
+      <td style="color:${sub12>=3?'var(--red)':sub12>=1?'var(--amber)':'var(--muted)'}">${sub12}</td>
+      <td>${formHtml}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('atk-season-body').innerHTML=seasonRows;
+  // Round-by-round grid
+  document.getElementById('atk-roundgrid').innerHTML=buildRoundGrid('scored');
+  // R1 detailed (existing)
+  const s=[...TEAMS].filter(t=>t.res!=="BYE").sort((a,b)=>b.att-a.att);
+  document.getElementById('atk-body').innerHTML=s.map((t,i)=>`<tr>
+    <td>${rankB(i+1)}</td><td>${chip(t)}</td>
+    <td>${rbar(t.att)}</td>
+    <td style="color:var(--accent);font-weight:800">${t.etxp}</td>
+    <td style="color:${fpcrc(t.fpcr)};font-weight:800">${t.fpcr}×</td>
+    <td>${t.runM?.toLocaleString()??'—'}</td>
+    <td>${t.gain?.toLocaleString()??'—'}</td>
+    <td style="color:${t.lb>=7?'var(--green)':t.lb<=2?'var(--red)':'var(--text)'};font-weight:700">${t.lb??'—'}</td>
+    <td style="color:${t.ts>=7?'var(--green)':t.ts<=2?'var(--red)':'var(--text)'};font-weight:700">${t.ts??'—'}</td>
+    <td>${t.comp!=null?t.comp+'%':'—'}</td>
+    <td style="color:${t.xp>=25?'var(--green)':t.xp>=18?'var(--amber)':'var(--text)'};font-weight:700">${t.xp??'—'}</td>
+    <td style="font-weight:700">${t.rzPtbs??'—'}</td>
+  </tr>`).join('');
+}
+
+// ── BUILD: DEFENCE ────────────────────────────────────────────────
+function buildDefence(){
+  const ss=computeTeamSeasonStats();
+  const ladder=computeLadder();
+  // Season defence summary
+  const seasonRows=ladder.slice().sort((a,b)=>{
+    return (ss[a.name]?.avgPA||99)-(ss[b.name]?.avgPA||99);
+  }).map((lt,i)=>{
+    const s=ss[lt.name];
+    const t=TEAMS.find(x=>x.name===lt.name)||{pri:'444444'};
+    if(!s||!s.gp)return '';
+    const avg=s.avgPA;
+    const avgCol=avg<=18?'var(--green)':avg<=24?'var(--amber)':'var(--red)';
+    const under12=s.games.filter(g=>g.pa<=12).length;
+    const over50=s.games.filter(g=>g.pa>=50).length;
+    const formHtml=s.form.map(f=>`<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${f==='W'?'#1A4A1A':'#4A1A1A'};color:${f==='W'?'var(--green)':'var(--red)'};font-size:8px;font-weight:900;line-height:14px;text-align:center">${f}</span>`).join('');
+    return `<tr>
+      <td>${rankB(i+1)}</td>
+      <td>${chip({name:lt.name,short:lt.short,pri:t.pri})}</td>
+      <td style="color:var(--muted)">${s.gp}</td>
+      <td style="font-weight:900;color:${avgCol};font-size:14px">${avg}</td>
+      <td style="font-weight:800;color:var(--text)">${s.totalPA}</td>
+      <td style="color:var(--green);font-weight:800">${Math.min(...s.games.map(g=>g.pa))}</td>
+      <td style="color:var(--red);font-weight:700">${s.maxPA}</td>
+      <td style="color:${under12>=3?'var(--gold)':under12>=1?'var(--green)':'var(--muted)'};font-weight:800">${under12}</td>
+      <td style="color:${over50>=2?'var(--red)':over50>=1?'var(--amber)':'var(--muted)'}">${over50}</td>
+      <td>${formHtml}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('def-season-body').innerHTML=seasonRows;
+  // Round-by-round
+  document.getElementById('def-roundgrid').innerHTML=buildRoundGrid('conceded');
+  // R1 detailed
+  const s=[...TEAMS].filter(t=>t.res!=="BYE").sort((a,b)=>b.def-a.def);
+  document.getElementById('def-body').innerHTML=s.map((t,i)=>{
+    const missOutcome=t.miss<=20?'Low Risk':t.miss<=35?'Moderate':t.miss<=45?'High Risk':'Critical';
+    const missCol=t.miss<=20?'var(--green)':t.miss<=35?'var(--amber)':t.miss<=45?'var(--red)':'#FF3030';
+    const dcol=t.defConv?t.defConv>1.5?'var(--green)':t.defConv>1.0?'var(--amber)':'var(--red)':'var(--muted)';
+    return `<tr>
+      <td>${rankB(i+1)}</td><td>${chip(t)}</td>
+      <td>${rbar(t.def)}</td>
+      <td style="color:var(--muted);font-weight:700">${ETXP_CONCEDED[t.name]??'—'}</td>
+      <td style="color:${dcol};font-weight:800">${t.defConv??'—'}</td>
+      <td style="color:${t.eff>=90?'var(--green)':t.eff<=86?'var(--red)':'var(--text)'};font-weight:700">${t.eff!=null?t.eff+'%':'—'}</td>
+      <td style="color:${missCol};font-weight:700">${t.miss??'—'}</td>
+      <td style="color:${missCol};font-size:11px">${missOutcome}</td>
+      <td style="color:${t.dom>=15?'var(--green)':'var(--text)'}">${t.dom??'—'}</td>
+      <td style="color:${t.ta<=2?'var(--green)':t.ta>=7?'var(--red)':'var(--text)'};font-weight:700">${t.ta??'—'}</td>
+      <td style="color:${t.err<=8?'var(--green)':t.err>=15?'var(--red)':'var(--text)'};font-weight:700">${t.err??'—'}</td>
+      <td style="color:${t.pen<=3?'var(--green)':t.pen>=9?'var(--red)':'var(--text)'};font-weight:700">${t.pen??'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BUILD: PROFILES ───────────────────────────────────────────────
+let resFilter='ALL';
+function filterRes(r){
+  resFilter=r;
+  ['ALL','W','L','BYE'].forEach(x=>document.getElementById('fil-'+x)?.classList.toggle('active',x===r));
+  renderProfiles();
+}
+function renderProfiles(){
+  const q=document.getElementById('prof-search').value.toLowerCase();
+  const show=TEAMS.filter(t=>(resFilter==='ALL'||t.res===resFilter)&&t.name.toLowerCase().includes(q));
+  document.getElementById('profiles-grid').innerHTML=show.map(t=>{
+    const s=SUMMARIES[t.name]||{str:'—',concern:'—'};
+    const rc2=v=>v===null?'lo':v>=7?'':'mid';
+    return `<div class="pcard">
+      <div class="ph">
+        <div class="pswatch" style="background:#${t.pri};border:2px solid #${t.sec||'333'}"></div>
+        <div>
+          <div class="pname">${t.name}</div>
+          <div class="pres">${resBadge(t.res)} vs ${t.opp}</div>
+        </div>
+      </div>
+      <div class="pratings">
+        <div class="prating"><div class="prl">Attack</div><div class="prv ${rc2(t.att)}">${t.att??'—'}</div></div>
+        <div class="prating"><div class="prl">Defence</div><div class="prv ${rc2(t.def)}">${t.def??'—'}</div></div>
+        <div class="prating"><div class="prl">Overall</div><div class="prv ${rc2(t.ovr)}">${t.ovr??'—'}</div></div>
+      </div>
+      ${t.res!=="BYE"?`
+      <div class="adv-metrics">
+        <div class="am"><div class="am-l">ETxP</div><div class="am-v" style="color:var(--accent)">${t.etxp}</div></div>
+        <div class="am"><div class="am-l">FPCR</div><div class="am-v" style="color:${fpcrc(t.fpcr||0)}">${t.fpcr}×</div></div>
+        <div class="am"><div class="am-l">Net Errors</div><div class="am-v" style="color:${t.netErr>=0?'var(--green)':'var(--red)'}">${t.netErr>0?'+':''}${t.netErr}</div></div>
+        <div class="am"><div class="am-l">Red Zone PTBs</div><div class="am-v">${t.rzPtbs}</div></div>
+      </div>`:''}
+      <div class="insight">
+        <div class="insight-row"><span class="insight-icon">✅</span><span class="insight-txt">${s.str}</span></div>
+        <div class="insight-row"><span class="insight-icon">⚠️</span><span class="insight-txt">${s.concern}</span></div>
+      </div>
+      ${t.res!=="BYE"?`<div class="mini-stats">
+        <div class="ms"><div class="ms-l">Run M</div><div class="ms-v">${t.runM?.toLocaleString()}</div></div>
+        <div class="ms"><div class="ms-l">xPts</div><div class="ms-v">${t.xp}</div></div>
+        <div class="ms"><div class="ms-l">Rep Sets</div><div class="ms-v">${t.repSets}</div></div>
+        <div class="ms"><div class="ms-l">Ruck Spd</div><div class="ms-v">${t.ptb}s</div></div>
+        <div class="ms"><div class="ms-l">Missed</div><div class="ms-v" style="color:${t.miss>40?'var(--red)':'white'}">${t.miss}</div></div>
+        <div class="ms"><div class="ms-l">Pen</div><div class="ms-v">${t.pen}</div></div>
+      </div>`:'<div style="text-align:center;padding:10px;color:var(--muted);font-size:11px">Round 1 BYE — No data</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── BUILD: AI METHODOLOGY ─────────────────────────────────────────
+function buildAI(){
+  const items=[
+    {icon:"📐",title:"Field Position Value (ETxP / EPV Model)",badge:"✅ LIVE IN DASHBOARD",badgeBg:"#006B3F",
+     coachQ:"Coach asks: \"We had so much ball last week — why did we only score 18 points?\"",
+     coachA:"ETxP tells you. It values every possession by WHERE it was, not just whether you had the ball. The Cowboys had the most field position in R1 (25.2 ETxP) but converted it at 0.71× expected — their attacking shape in the red zone broke down every time. That's a coaching problem, not a depth problem.",
+     body:"The field is divided into 450 zones (4×4m). Each zone has a calculated try probability based on tackle number, time remaining, and score margin. Summing across all possessions gives a team's ETxP — what they <em>should</em> have scored. FPCR = actual points ÷ ETxP.",
+     formula:"ETxP = Σ [P(try | zone, tackle#, time, margin)] × 5.5pts",
+     r1:"Dolphins 4.84× FPCR (30pts from 6.2 ETxP) · Cowboys 0.71× (18pts from 25.2 ETxP)"},
+    {icon:"📏",title:"Run Metres Over Expected (RMOE)",badge:"✅ LIVE IN DASHBOARD",badgeBg:"#006B3F",
+     coachQ:"Coach asks: \"Is our fullback actually carrying well or just getting the ball in space?\"",
+     coachA:"Raw run metres lie. A fullback getting the ball 30m out in space isn't doing the same job as a prop grinding through the line at the ruck. RMOE removes that bias — it tells you whether a player is genuinely beating their positional expectation or just benefitting from team structure.",
+     body:"Takes a player's metres per carry and subtracts the positional expectation for their role and carry context. Positive RMOE = performing above what an average player in that role would produce from the same opportunities. Used in the Player Spotlight tab for all 24 key R1 players.",
+     formula:"RMOE/carry = (actual_metres ÷ carries) − expected_metres[position]",
+     r1:"Patrick Carrigan (Broncos lock): +0.63 RMOE — only Bronco above expectation in a 0-26 loss"},
+    {icon:"🤝",title:"Player Contribution Rating (PCR)",badge:"📋 NEXT PHASE",badgeBg:"#2563EB",
+     coachQ:"Coach asks: \"Who actually won us that game — I want one number, not 20 stats\"",
+     coachA:"PCR gives you that. Every stat gets weighted by how strongly it correlates with NRL wins across historical data — so a line break is worth more than a run metre, and an error is weighted heavily against. Then it's adjusted for minutes played so an 80-minute forward isn't punished for more touches than a 50-minute interchange.",
+     body:"Win-correlation weighted player score inspired by the Eye Test ETPCR framework. Each statistic is multiplied by its historical weight (how strongly it predicts wins), summed, then normalised by minutes and possession share. Allows fair comparison across positions, teams, and game states.",
+     formula:"PCR = Σ[stat_i × win_weight_i] ÷ (minutes_played × possession_adj)",
+     r1:"Coming in Round 2+ — enables season-long player comparison across all 17 teams"},
+    {icon:"📊",title:"Momentum Swing Detection",badge:"📋 NEXT PHASE",badgeBg:"#2563EB",
+     coachQ:"Coach asks: \"At what exact point did we lose the game — I want to show the players in video\"",
+     coachA:"Momentum detection pinpoints it with data. It tracks ETxP rate, error frequency, repeat sets, and PTB speed across 5-minute windows. When those four combine negatively, you get a tipping point — the exact 5-minute window where the game turned. That becomes the video clip your coach plays Monday morning.",
+     body:"Sliding-window model tracking ETxP trajectory, error rate, set restart volume, and PTB speed in 5-minute windows. Detects statistical tipping points — the moments game control shifts. Outputs a momentum score (−10 to +10) per minute across the full 80.",
+     formula:"Momentum(t) = ΔETXP(t−5,t) + 0.8×ΔErrors + 0.6×ΔRestarts + 0.4×ΔPenalties",
+     r1:"R1 application: Broncos momentum score was negative from minute 1. Cowboys peak was mins 35–55 — exactly when they were earning 55 red-zone PTBs but not converting"},
+    {icon:"🤖",title:"AI Video Tagging & Pattern Recognition",badge:"🚀 AI ROADMAP",badgeBg:"#7C3AED",
+     coachQ:"Coach asks: \"How many times did their halfback kick left in the second half when they were behind?\"",
+     coachA:"Without AI video tagging, answering that takes an analyst 4+ hours. With a trained computer vision model, it's automatic — every kick, every line play, every defensive shape is labelled the moment the footage lands. That gives coaching staff opposition tendency reports in hours not days.",
+     body:"Computer vision models (YOLOv8 / Detectron2) track all 26 players at every frame. Combined with play-by-play data: automatic detection of defensive line spacing, attack formation identification, kick-chase cohesion scoring, support-line grading, and opposition tendency profiling. Removes manual video hours completely.",
+     formula:"shape_class = CNN(frame) → player_coords → pattern_match(formation_templates)",
+     r1:"Use case: tag every Sharks repeat set chain R1 → identify which specific defensive behaviour triggers the 6-again → fix it in training"},
+    {icon:"🎯",title:"Predictive Modelling & Opposition Prep",badge:"🚀 AI ROADMAP",badgeBg:"#7C3AED",
+     coachQ:"Coach asks: \"What's the game plan that gives us the best chance against the Panthers?\"",
+     coachA:"Predictive models give you data-backed answers. Penrith win 78% of games where they hold +net error differential. They've never lost when earning 18+ repeat sets. So the game plan is clear: force their completion errors, limit their repeat set chain, win the discipline battle. The model quantifies exactly how much each variable shifts your win probability.",
+     body:"XGBoost/Random Forest models trained on multi-season NRL data predict: match outcome probability, opposition tendency percentages (kick direction, run side preference, set-end play selection), and which specific matchup factors most influence result. Feeds directly into weekly game plan documents.",
+     formula:"P(win) = f(ETxP_avg, opp_FPCR, net_err_diff, ruck_delta, home_advantage)",
+     r1:"R1 predictors: net error diff predicted 7 of 8 results correctly. FPCR gap predicted margin in 6 of 8"},
+    {icon:"🏃",title:"Defensive Spacing & Line Integrity",badge:"🚀 AI ROADMAP",badgeBg:"#7C3AED",
+     coachQ:"Coach asks: \"Why do we keep getting beaten on the edges — the halves are getting outside us\"",
+     coachA:"Line Integrity Rating answers it with coordinates. If your defensive spacing is 5.5m when the ball moves wide (elite is 3.5–4.5m) the model flags it. You can show the coach exactly which players are consistently out of position and at which tackle count — changing what used to be a feel-based observation into a measurable, fixable pattern.",
+     body:"GPS/optical tracking data measures defensive player spacing at tackle attempt. Elite lines hold 3.5–4.5m gaps. Deviations are scored per tackle. Line Integrity Rating = % of tackles made from optimal spacing. Identifies specific players and game moments where defensive structure breaks down.",
+     formula:"LIR = (tackles_from_optimal_spacing ÷ total_tackles) × 100",
+     r1:"Manly had 49 missed tackles — LIR would identify whether this was a specific player, a fatigue issue, or a systematic defensive shape problem"},
+    {icon:"⚡",title:"Ruck Speed Context Engine",badge:"✅ LIVE IN DASHBOARD",badgeBg:"#006B3F",
+     coachQ:"Coach asks: \"Our ruck speed looks slow in the stats but we felt like we were going fast — what's going on?\"",
+     coachA:"Raw PTB speed is meaningless without context. A 3.8s average could mean you're intentionally slowing down to reset defensive shape (elite strategy) or your players are fatigued and slow (problem). The context engine separates those two completely different situations — and tells your coach whether a slow ruck is a choice or a concern.",
+     body:"Classifies each PTB as: intentional-slow (defence resetting), forced-slow (fatigue/dominant tackle), contested-fast (pressure), or clean-fast (efficient). Outputs a contextual ruck score showing whether PTB speed is a strategic weapon or a systemic weakness.",
+     formula:"PTB_class = f(ptb_time, tackle_type, set_number, match_minute, fatigue_index)",
+     r1:"Sharks 3.82s (slowest R1) was intentional — their repeat set chain made their own ruck speed irrelevant. Cowboys 3.30s (fastest) but their context was defensive pressure, not clean possession"}
+  ];
+
+  document.getElementById('ai-grid').innerHTML=items.map(item=>`
+    <div class="ai-card" style="border-left:3px solid ${item.badgeBg}">
+      <div class="ai-card-head">
+        <div class="ai-icon-circle" style="background:${item.badgeBg}22;border:1px solid ${item.badgeBg}55;font-size:22px">${item.icon}</div>
+        <div>
+          <div class="ai-card-title" style="font-size:13px">${item.title}</div>
+          <span class="ai-card-badge" style="background:${item.badgeBg};color:white;margin-top:5px">${item.badge}</span>
+        </div>
+      </div>
+      <!-- Coaching question -->
+      <div style="background:#0D0D20;border-left:3px solid ${item.badgeBg};border-radius:0 7px 7px 0;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:9px;color:#8899BB;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:800">COACHING QUESTION THIS SOLVES</div>
+        <div style="font-size:12px;color:#E0D0FF;font-style:italic;line-height:1.5">${item.coachQ}</div>
+      </div>
+      <!-- Answer -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:9px;color:#8899BB;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:800">HOW THIS ANSWERS IT</div>
+        <div style="font-size:12px;color:#B0C4D8;line-height:1.6">${item.coachA}</div>
+      </div>
+      <!-- How it works -->
+      <div style="margin-bottom:8px">
+        <div style="font-size:9px;color:#8899BB;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:800">HOW IT WORKS</div>
+        <div class="ai-body" style="margin-bottom:0">${item.body}</div>
+      </div>
+      <div class="ai-formula">${item.formula}</div>
+      <div style="margin-top:8px;padding:8px 10px;background:#0A1525;border-radius:6px;font-size:10px;color:var(--gold)">
+        <strong>R1 2026 Example:</strong> ${item.r1}
+      </div>
+    </div>`).join('');
+}
+
+// ── BUILD: TRY ZONE ANALYSIS ──────────────────────────────────────
+function buildTryZone(){
+  const ladder=computeLadder();
+  const rows=ladder.map(lt=>{
+    const tz=TRY_ZONES[lt.name];
+    if(!tz)return '';
+    const ts=tz.sl+tz.sm+tz.sr;
+    const tc=tz.cl+tz.cm+tz.cr;
+    const lPct=ts?Math.round(tz.sl/ts*100):0;
+    const mPct=ts?Math.round(tz.sm/ts*100):0;
+    const rPct=ts?Math.round(tz.sr/ts*100):0;
+    const favSide=tz.sl>tz.sr?'LHS':'RHS';
+    const vulnSide=tz.cl>tz.cr?'LHS':'RHS';
+    const t=TEAMS.find(x=>x.name===lt.name)||{pri:'444444'};
+    return `<tr>
+      <td>${chip({name:lt.name,short:lt.short,pri:t.pri})}</td>
+      <td><div style="display:flex;gap:4px;align-items:center">
+        <div style="background:#1A3060;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800;color:#6CF">${tz.sl}</div>
+        <div style="width:40px;height:7px;background:#252545;border-radius:3px;overflow:hidden"><div style="width:${lPct}%;height:7px;background:#6CF;border-radius:3px"></div></div>
+        <span style="font-size:9px;color:#6CF">${lPct}%</span>
+      </div></td>
+      <td><div style="display:flex;gap:4px;align-items:center">
+        <div style="background:#1A3520;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800;color:var(--green)">${tz.sm}</div>
+        <div style="width:40px;height:7px;background:#252545;border-radius:3px;overflow:hidden"><div style="width:${mPct}%;height:7px;background:var(--green);border-radius:3px"></div></div>
+        <span style="font-size:9px;color:var(--green)">${mPct}%</span>
+      </div></td>
+      <td><div style="display:flex;gap:4px;align-items:center">
+        <div style="background:#301A20;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:800;color:var(--amber)">${tz.sr}</div>
+        <div style="width:40px;height:7px;background:#252545;border-radius:3px;overflow:hidden"><div style="width:${rPct}%;height:7px;background:var(--amber);border-radius:3px"></div></div>
+        <span style="font-size:9px;color:var(--amber)">${rPct}%</span>
+      </div></td>
+      <td style="font-weight:800;color:var(--green)">${ts}</td>
+      <td><span style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:${favSide==='LHS'?'#0A1A30':'#201008'};color:${favSide==='LHS'?'#6CF':'var(--amber)'}">${favSide}</span></td>
+      <td style="color:var(--muted)">${tz.cl}</td>
+      <td style="color:var(--muted)">${tz.cm}</td>
+      <td style="color:var(--muted)">${tz.cr}</td>
+      <td style="font-weight:800;color:var(--red)">${tc}</td>
+      <td><span style="padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;background:${vulnSide==='LHS'?'#2A0A0A':'#1A0A20'};color:var(--red)">${vulnSide}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tryzone-body').innerHTML=rows;
+
+  // Team AI breakdowns
+  const cards=ladder.map(lt=>{
+    const tz=TRY_ZONES[lt.name];
+    if(!tz)return '';
+    const t=TEAMS.find(x=>x.name===lt.name)||{pri:'444444'};
+    const ts=tz.sl+tz.sm+tz.sr;
+    const tc=tz.cl+tz.cm+tz.cr;
+    const lW=Math.round(tz.sl/ts*100),mW=Math.round(tz.sm/ts*100),rW=Math.round(tz.sr/ts*100);
+    const lcW=Math.round(tz.cl/tc*100),mcW=Math.round(tz.cm/tc*100),rcW=Math.round(tz.cr/tc*100);
+    return `<div class="ai-card" style="border-left:3px solid #${t.pri}">
+      <div class="ai-card-head">
+        <div class="ai-icon-circle" style="background:#${t.pri}20;border:1px solid #${t.pri}40">
+          <div style="width:28px;height:28px;background:#${t.pri};border-radius:7px"></div>
+        </div>
+        <div>
+          <div class="ai-card-title">${lt.name}</div>
+          <div style="display:flex;gap:6px;margin-top:3px">
+            <span style="font-size:9px;background:#0D1A10;color:var(--green);border-radius:5px;padding:2px 7px;font-weight:800">${ts} tries scored</span>
+            <span style="font-size:9px;background:#1A0D10;color:var(--red);border-radius:5px;padding:2px 7px;font-weight:800">${tc} conceded</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:800">⚔️ ATTACK — TRIES SCORED BY ZONE</div>
+        <div style="display:flex;height:20px;border-radius:6px;overflow:hidden;gap:2px;margin-bottom:5px">
+          <div style="width:${lW}%;background:#4477CC;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${lW>8?lW+'%':''}</div>
+          <div style="width:${mW}%;background:#44AA44;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${mW>8?mW+'%':''}</div>
+          <div style="width:${rW}%;background:#CC9933;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${rW>8?rW+'%':''}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+          <span>◀ LHS ${tz.sl}</span><span style="color:var(--green)">MID ${tz.sm}</span><span>RHS ${tz.sr} ▶</span>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:800">🛡️ DEFENCE — TRIES CONCEDED BY ZONE</div>
+        <div style="display:flex;height:20px;border-radius:6px;overflow:hidden;gap:2px;margin-bottom:5px">
+          <div style="width:${lcW}%;background:#AA3333;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${lcW>8?lcW+'%':''}</div>
+          <div style="width:${mcW}%;background:#884444;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${mcW>8?mcW+'%':''}</div>
+          <div style="width:${rcW}%;background:#AA5533;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:white">${rcW>8?rcW+'%':''}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+          <span>◀ LHS ${tz.cl}</span><span>MID ${tz.cm}</span><span>RHS ${tz.cr} ▶</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#AAB8CC;line-height:1.55;margin-bottom:8px"><strong style="color:white">🎯 Attack:</strong> ${tz.atk}</div>
+      <div style="font-size:11px;color:#AAB8CC;line-height:1.55;margin-bottom:8px"><strong style="color:white">🛡️ Defence:</strong> ${tz.def}</div>
+      <div style="font-size:10px;color:#667788;font-style:italic;border-top:1px solid var(--bord);padding-top:7px">${tz.style}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tryzone-cards').innerHTML=cards;
+}
+
+// ── TABLE FILTER ───────────────────────────────────────────────────
+function filterTbl(id,q){
+  document.querySelectorAll(`#${id} tr`).forEach(r=>{
+    r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+
+// ── PAGE ROUTER ────────────────────────────────────────────────────
+function show(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+buildOverview();
+buildResults();
+buildLadder();
+buildAdvanced();
+renderPlayers();
+buildAttack();
+buildDefence();
+renderProfiles();
+buildAI();
+buildTryZone();
+
+// ── SCOUT REPORTS ─────────────────────────────────────────────────
+const SCOUT_TACTICAL = {
+  "Brisbane Broncos":{
+    weapons:["Payne Haas — 162m, physical carrier forces wide defensive spreads","Patrick Carrigan — the one player consistently above expectation in this squad","High territory (49%) — they can get into good positions","Suncorp crowd factor at home"],
+    vulnerabilities:["19 errors in R1 — worst in the competition by a significant margin","0 points from 8.27 ETxP — attacking shape completely breaks down in the red zone","–11 net error differential — Panthers out-disciplined them at every tackle","61% completion rate means opponents get cheap ball repeatedly"],
+    howToAttack:["Force high completion sets early — Broncos' defence struggles when their own errors aren't disrupting the game","Attack the edges — their red zone conversion failure suggests poor defensive shape when pulled wide","Target their penalty count under pressure — 8 R1, they give away soft 6-agains","Build repeat set chains — they have no system to absorb extended defensive sets"],
+    verdict:"Broncos are dangerous to write off given their roster depth, but R1 was a systemic failure not just a bad night. Until their error count drops below 12 and their red zone conversion improves, they'll keep losing games they earn the right to win."
+  },
+  "Canberra Raiders":{
+    weapons:["Fastest ruck speed in R1 (3.31s) — before defence can reset, Raiders are back on attack","6 line breaks shows genuine ball-in-hand attacking threat under Ricky Stuart","Comeback DNA — trailed 14–6, won 29–28 showing elite game-state management","14 repeat sets earned — discipline under pressure generating extra opportunities"],
+    vulnerabilities:["8 penalties conceded — discipline remains a structural issue despite the win","Repeat set conversion must improve — 14 earned but only 5 tries scored","36 missed tackles is a concern in the middle of the field","Could be exposed against teams that slow the ruck deliberately"],
+    howToAttack:["Slow the ruck — Raiders' 3.31s fast PTB is their entire game plan, take that away","Target their discipline — 8 pens R1, apply pressure at the play-the-ball","Force them to play from their own half — their fast ruck is less threatening at 60m out","Attack their left edge late in games when fatigue reduces their aggressive ruck speed"],
+    verdict:"Raiders are genuinely dangerous when their ruck speed is clicking. The combination of fastest PTB + 6 line breaks makes them a threat to any side. Fix the penalty count and they'll win 7+ this season."
+  },
+  "Canterbury Bulldogs":{
+    weapons:["League-best 2,333 run metres — physically overwhelming forward pack","90.74% tackle efficiency — elite defensive structure, almost no missed tackles","42 red zone PTBs — relentlessly getting into scoring positions","Lachlan Galvin + Matt Burton halves combination building genuine chemistry"],
+    vulnerabilities:["0.83 FPCR — the worst of any winning team. Creating everything but finishing nothing","42 red zone PTBs produced only 2 tries — set-end attacking play is critically underdeveloped","Only 2 line breaks from 2,333m — enormous metres but no penetration through the line","Narrow 15–14 win despite statistical dominance — opponents will target this gap"],
+    howToAttack:["Absorb their run metres — their gain line dominance doesn't translate to line breaks, so structured defence holds","Counter-attack from kicks — Bulldogs kick less, so when they do, be ready to run it back from deep","Force them to score from wide — their edge attack is where their conversion rate improves","Apply score pressure early — their nerve under the pump in red zone situations clearly fails"],
+    verdict:"Bulldogs are the most interesting puzzle of R1. Statistically they should have won by 30+, but their red zone decision making and set-end play cost them a convincing victory. Elite defence, elite run metres, poor finishing — watch this gap narrow as Galvin matures."
+  },
+  "Cronulla Sharks":{
+    weapons:["22 repeat sets earned — best in R1 by a wide margin, a structural competitive advantage","7 of 9 tries from repeat set chains — Trindall has the best set-end management in the competition","23 dominant tackles — Fonua-Blake and Haas controlling opposition ruck speed","50-point demolition despite 3.82s ruck (slowest R1) — proof repeat sets > raw speed"],
+    vulnerabilities:["8 penalties — the one number that could unravel their repeat set formula","3.82s PTB speed slowest in R1 — teams with fast blitz defences can disrupt them","If referees tighten on 6-agains, Cronulla lose their primary structural weapon","Opposition teams are beginning to specifically target their penalty tendency"],
+    howToAttack:["Win the penalty battle — if Cronulla earn fewer repeat sets (below 12), they become a different team","Fast ruck against them — 3.82s own PTB means their defence resets slowly, attack before they're set","Kick long and contest — their kick chase cohesion is strong but fatigue-affected","Force error early — Cronulla's game plan relies on the opposition making mistakes first"],
+    verdict:"Cronulla are the most structured team in R1. Their repeat set formula is not luck — it's a deliberate game plan built over three seasons under Flanagan. To beat them you must specifically neutralise the repeat set chain by winning every penalty contest."
+  },
+  "Dolphins":{
+    weapons:["4.84× FPCR — extraordinary long-range try-scoring efficiency, the best in R1","Tabuai-Fidow and Cobbo edge combination — both scored from speed ball wide plays","Selwyn Cobbo: 2 tries, 188m — creates genuine matchup problems on the wide edge","Ability to win from minimal field position — dangerous when the game opens up"],
+    vulnerabilities:["6.19 ETxP — second lowest in R1, meaning they're barely getting into good positions","14 errors and 65% completion — one of the worst set management records of R1","–1 net error differential and only 10 repeat sets — not winning the ball control battle","Defence conceded 40 points — cannot keep giving up 7-8 point swings from turnovers"],
+    howToAttack:["Force completions — Dolphins' 65% completion means if you defend structured sets, they'll give you cheap ball","Control field position — their 6.19 ETxP means they're rarely in your 20m, don't let them build momentum","Attack their forwards in short ball — their prop group is not elite, and they struggle in sustained ruck battles","Score first and force them to chase — their defensive shape deteriorates when they're under scoreboard pressure"],
+    verdict:"Dolphins are a fascinating volatility play. When their edge attack is firing, no defence can hold them — but they depend on it completely. A team that forces them to play structured ruck football will expose their completion rate and forward limitations quickly."
+  },
+  "Gold Coast Titans":{
+    weapons:["19.99 ETxP — second highest in R1, meaning they regularly get into excellent field positions","High territory (56%) and possession of their own — they create the right situations","Mix of experienced and young talent — Fifita + AJ Brimson combination potentially dangerous","Better than their 10–50 result suggests — this team deserved more on the night"],
+    vulnerabilities:["0.50 FPCR — worst in R1. They earn elite field position and convert it at half the average rate","0 dominant tackles — no forward who regularly drives opponents back and slows the ruck","35 red zone PTBs produced only 2 tries — catastrophic clinical failure","37 missed tackles — losing the individual contest too regularly"],
+    howToAttack:["Absorb their field position — Titans will move the ball into good spots but won't score, so structured defence wins","Force turnovers in their 20m — their conversion of red zone PTBs is so poor, if you intercept momentum swings","Attack their ruck — 0 dominant tackles means their defence isn't slowing your carriers","Counter from kicks — their kick-chase discipline is below average, exploit the space"],
+    verdict:"Gold Coast are the most frustrating team in R1. They do everything right until they actually have to score. This is fundamentally a set-end quality and finishing problem — once fixed, they have the field position foundation to be very dangerous. Until then, scoreboard pain."
+  },
+  "Melbourne Storm":{
+    weapons:["Sua Fa'alogo — 218m, 3 line breaks, orchestrating long-range try chains","2.86× FPCR with 3 long-range tries — Storm DNA of dangerous ball from any position","+9 net error differential — cleanest ball security of any team in R1","18 repeat sets earned and 18.19 ETxP — both elite field position AND conversion"],
+    vulnerabilities:["86.15% tackle efficiency — lowest of any winning side, a red flag under their standards","Three consecutive repeat sets conceded late shows defensive fatigue patterns","6 penalties — could cost them in tight finals situations","Their success depends heavily on opponent errors — reduced when facing disciplined sides"],
+    howToAttack:["Win the error battle — Storm's dominance comes from opponents gifting them ball, deny that","Force them to tackle for 40 minutes — their tackle efficiency dropping late in games is notable","Kick to Fa'alogo from distance — their long-range threat requires open field, deny that","Run short ball into the ruck — Storm's defensive pattern is vulnerable to quick play-the-ball and short shifts"],
+    verdict:"Melbourne are the benchmark team of Round 1. Every metric points to a complete performance — field position, conversion, ball security, repeat sets. The one vulnerability is late-game defensive fatigue. Anyone planning to beat them needs to be in the game past the 60-minute mark."
+  },
+  "Manly Sea Eagles":{
+    weapons:["Haumole Olakau'atu — 172m, 2 LB, 1 try — elite second rower who creates matchup problems","Tolutau Koula — 2 tries, 168m — genuine scoring threat if moved back to fullback","12.99 ETxP — competitive attacking output, they get into reasonable positions","Strong first-half performances suggest they can execute a game plan when fresh"],
+    vulnerabilities:["49 missed tackles — worst in R1 by a significant margin, a code red defensive stat","83.45% tackle efficiency — lowest in the competition, systemic defensive breakdown","5 penalties — losing the discipline battle on top of the tackle miss rate","Research confirms 10+ missed tackles in own 20m zone leads to cascade scoring — fix immediately"],
+    howToAttack:["Attack their right edge hard and early — identify which defenders are missing most in video review","Build repeat sets — each set restart in their end creates another high-leverage defensive opportunity","Run hard at their second row in the middle of the field to force them wide","Late in games when fatigue compounds their miss rate — this team's defence deteriorates rapidly after 60 mins"],
+    verdict:"Manly are a team in structural defensive crisis. 49 missed tackles is not a one-game anomaly — it reflects a defensive system that is not built to absorb the modern high-repeat-set NRL. Olakau'atu is a genuine star, Koula has to be at fullback, but neither fixes 49 missed tackles. This must be priority one."
+  },
+  "New Zealand Warriors":{
+    weapons:["2.71× FPCR — extremely efficient at converting what they earn into points","42–18 dominant win despite 47 missed tackles — attack completely compensates for defensive issues","Roger Tuivasa-Sheck — 2 tries, 148m from centre, a genuine game-breaker","16 repeat sets — generating extra attacking opportunities regularly"],
+    vulnerabilities:["47 missed tackles + 78.98% efficiency — worst defensive combination of any winning side","15.51 ETxP is only moderate — they need to sustain scoring efficiency to win big","8 errors — manageable but not elite, net error differential flatlines their advantage","A disciplined, structured team will expose their defensive system quickly"],
+    howToAttack:["Control possession and force repeat sets in their end — their defence breaks down under sustained pressure","Attack their right channel where missed tackles cluster (based on their defensive line shape)","Run two or three wide late in sets — Warriors miss tackles on the outside regularly","Force them to defend for long periods — they win when the game is loose, they lose when it's grinding"],
+    verdict:"Warriors are thrilling to watch and terrifying to play against in an open game. But any side that can force 50+ minutes of structured defensive football will expose their 78.98% tackle efficiency hard. This is the most important thing Webster must fix to compete in finals."
+  },
+  "Newcastle Knights":{
+    weapons:["Kalyn Ponga — best individual R1 display. 192m, 1 try, 2 LB, 0 errors against the Cowboys","5 tries from 5 different scorers — attacking width and shared scoring load","14 repeat sets earned and 28.15 ETxP attack — genuinely competitive field position","88.4% tackle efficiency with only 37 missed — solid defensive foundation"],
+    vulnerabilities:["12 errors — above average for a winning side, ball security needs to improve","Cowboys outgained them on every single attacking metric yet Knights won — FPCR luck component","Under 2.0 FPCR (1.97) suggests conversion could be sharper from their field position","Ruck speed (3.41s) is fast but not structurally the fastest — medium risk"],
+    howToAttack:["Limit Ponga's touches — when he's not in the game, Knights lack a consistent individual threat","Win the error battle — 12 errors is exploitable if you're disciplined with 8 or fewer","Contest every kick — Knights' kicking game is their primary source of field position","Force them to score without Ponga creating it — their other attackers are less dangerous"],
+    verdict:"Knights got the job done against a Cowboys side who statistically dominated them. That's either remarkable game management or a FPCR result that won't consistently repeat. Ponga is genuinely elite — any scouting report starts and ends with limiting his impact."
+  },
+  "North Queensland Cowboys":{
+    weapons:["Jason Taumalolo — 162m, elite physical forward presence, commands a double-team every carry","25.2 ETxP — highest in R1 by 5+ points, they generate more dangerous field position than anyone","55 red zone PTBs — volume of scoring opportunities is extraordinary","3.30s PTB speed — fastest ruck in R1, should theoretically be giving them the most attacking sets"],
+    vulnerabilities:["0.71× FPCR — worst non-BYE team in R1, catastrophic waste of elite field position","Set-end quality is the single biggest gap — every play 5 and 6 in the red zone needs a complete overhaul","Only 2 line breaks from 1,855m — enormous metres but never piercing the defensive line","41 missed tackles — solid field position but losing individual contests regularly"],
+    howToAttack:["Defend structured sets — Cowboys will get into your end but won't score if your red zone shape is right","Force them wide in the final tackle — their set-end plays are predictable and easily read","Target their tackle miss rate — 41 missed tackles means there are gaps when the ball is shifted fast","Force an early deficit — Cowboys haven't shown the ability to chase a game efficiently, they need to lead"],
+    verdict:"Cowboys are the most perplexing puzzle of R1. They generated the most dangerous attacking positions of anyone — and still lost. This is not a depth issue. This is a coaching problem. Their set-end attacking shape in the red zone is so poor that 55 play-the-balls produced only 3 tries. Fix this and they're a top-four team."
+  },
+  "Parramatta Eels":{
+    weapons:["High territory (48%) given the scoreline — they did manage to get into decent positions","88.5% tackle efficiency — actually solid in the tackle, considering they conceded 52","9 dominant tackles — their defensive forwards compete hard even when the game is lost","Resilient — continued to compete physically after falling behind to Storm"],
+    vulnerabilities:["17 errors — second worst in R1, gifting Melbourne cheap ball repeatedly","63% completion rate — catastrophic set management, giving Storm 13 extra sets of possession","–9 net error differential — one of the worst ball security differentials of R1","3.79s PTB speed — giving Storm's fast defensive system all the time it needs to reset"],
+    howToAttack:["Target their slow ruck — 3.79s PTB means they're not creating any defensive reset problems","Force completions early — once Eels are behind, their completion rate drops even further","Attack their halves under pressure — Eels' game management deteriorated completely when chasing Storm","Run short ball on tackle 3 — their defensive line is slow to compress, creating short gaps"],
+    verdict:"Eels were outclassed in every single metric by Melbourne. The combination of 17 errors, 63% completion, and 3.79s ruck speed is a formula for conceding 52. The rebuild is clearly still underway — they compete hard individually but have no structural answers to elite teams yet."
+  },
+  "Penrith Panthers":{
+    weapons:["Nathan Cleary — 0 errors on 16 carries, 45 kicks for 1,890m territory, set the entire tempo","20 repeat sets earned (most alongside Rabbitohs) — sustained pressure control all game","0 points conceded — defensive system produced a perfect game in terms of output","Classic Panthers formula: +5 net error diff + 20 repeat sets = they never let a team breathe"],
+    vulnerabilities:["1.63× FPCR — moderately converting their field position, not maximising every opportunity","Only 2 line breaks from 1,832m and 58% possession — underleveraging their attacking platform","Should be winning by more when this dominant — suggests a slight complacency risk","Without Cleary, their entire set-end game and kicking strategy shifts dramatically"],
+    howToAttack:["Win the error battle — Panthers' game plan is entirely built on opponents gifting them possession. Deny that.","Pressure Cleary specifically — every penalty and error he makes disrupts their tempo","Contest their kick returns — Panthers build field position through kicking, be fearless running it back","Stay in the game past 60 mins — Panthers teams that get rattled late have been beaten before"],
+    verdict:"Panthers are doing what Panthers do. The 0-26 scoreline understates how completely they controlled the Broncos — they won every controllable variable. 1.63 FPCR is the one improvement area. Any team facing them needs a specific plan for repeat sets, or they'll spend the entire game defending their own line."
+  },
+  "South Sydney Rabbitohs":{
+    weapons:["Latrell Mitchell — 125m, 2 LB, creates 2v1 situations every carry from centre","Cameron Murray — 5 dominant tackles, the structural backbone in defence and attack","20 repeat sets earned — equal with Panthers for most R1, generating relentless pressure","20.4 ETxP and 1.96 FPCR — genuinely converting their field position above average"],
+    vulnerabilities:["Conceded 30 points despite leading — defensive breakdown in second half is systemic","13 errors — slightly above average, needs to tighten if they want to match the best teams","–1 net error differential — essentially even with Dolphins, not winning the possession war","Defensive lapses under fatigue in second half is a pattern that finals opponents will prepare for"],
+    howToAttack:["Play physical, slow ruck football — Rabbitohs' fast-paced style is disrupted by dominant tackling","Target their right edge late in the game — their defensive collapse in the second half started there","Force Mitchell into a defensive role — when he's making 15+ tackles, he's less dangerous with ball","Build a lead and force them to chase — Rabbitohs chasing is less dangerous than Rabbitohs leading"],
+    verdict:"Rabbitohs are a genuine top-four contender. Their attack is multi-dimensional, their repeat set game is elite, and Latrell is the best centre in the competition when fit. The second-half defensive issue is real but fixable — expect this team to be significantly tighter defensively by mid-season."
+  },
+  "St George Illawarra Dragons":{
+    weapons:["88% completion — best in the competition R1, elite set discipline and ball security","14.1 ETxP in a narrow loss — they competed in terms of field position","+4 net error differential — out-disciplined the Bulldogs despite losing","Hamish Stewart — 6 dominant tackles, defensive anchor holding the middle"],
+    vulnerabilities:["0.99× FPCR — completing sets perfectly but not converting any of it into points","Only 1 line break from 1,752m — the most penetration-free run attack in R1","9 penalties — too many for a team that completes at 88%","Their attacking set-end play is as poor as the Cowboys' — different problem, same outcome"],
+    howToAttack:["Defend their completion — they're not a line-break threat, so disciplined sets hold them","Target their halves — Stewart's set-end creativity is below what's needed at NRL level","Attack their right edge where most of their missed tackles occur","Force them to score from distance — their close-range conversion is clearly the weakness"],
+    verdict:"Dragons are an analytically fascinating side. They do the fundamentals (completion, errors, discipline) better than almost anyone — yet have no attacking threat to show for it. This is purely a set-end quality and halves creativity problem. Fix those two things and their foundation is actually elite."
+  },
+  "Sydney Roosters":{
+    weapons:["James Tedesco — 212m, 1 try, best individual in a losing side R1, still elite at 32","6 line breaks — joint 4th most in R1, genuine attacking threat when the ball moves","1.45× FPCR — above-average conversion from their field position","12 dominant tackles — competitive in the physical contest"],
+    vulnerabilities:["11 penalties — worst in R1 by a significant margin, killing their own momentum repeatedly","13 errors + 11 penalties = 24 possession-ending mistakes in a single game","Conceded 42 points despite 1.45 FPCR — defence not matching their attacking output","Losing their way in mid-sets under pressure — too many give-away decisions"],
+    howToAttack:["Force penalties — Roosters give them away freely, any team that pressures their discipline will be rewarded","Attack their ruck — 11 penalties means they're consistently off-side or giving away contact","Force Tedesco into a purely defensive role — limit his involvements and their attack halves","Exploit their second half — Roosters score 18, concede 42 — the second half is where their discipline drops"],
+    verdict:"Roosters are in transition but still dangerous. Tedesco is elite. But 11 penalties is unacceptable at any level — it gave Warriors 11 extra attacking sets. Until Robinson tightens their discipline, they'll consistently lose winnable games. This team has the talent to win 14+ but not while conceding 11 pens."
+  },
+  "Wests Tigers":{
+    weapons:["Terrell May — averaging 162m per game in 2026 before Round 1, elite prop","Fonua Pole — 69% of carries above positional expectation this season (strong RMOE)","BYE Round 1 — full preparation advantage heading into Round 2","Benji Marshall bringing attacking creativity and game management back to the club"],
+    vulnerabilities:["No Round 1 data — analysis based on 2025 performance trends and pre-season reports","Consistency has been the Tigers' long-term issue — they can beat anyone but lose to everyone","Ruck speed has historically been below average — 2026 data needed to confirm","Must back up immediately after bye — no chance to gradually build form"],
+    howToAttack:["Force Fonua Pole and May to make tackles — drain them defensively before using them in attack","Target their halves under scoreboard pressure — Tigers' game management cracks when behind","Win the early repeat sets — Tigers don't have the structural repeat set capability of top sides","Attack their left edge — historically their weaker defensive channel"],
+    verdict:"BYE means no Round 1 data. What we know: Terrell May is a genuine elite prop, Fonua Pole has shown above-expected run efficiency, and Benji Marshall has transformed their attacking intent. The structural question is whether their defence is organised enough to hold top-eight-quality teams."
+  }
+};
+
+let scoutResFilter = 'ALL';
+
+function filterScoutRes(r){
+  scoutResFilter = r;
+  ['ALL','W','L','BYE'].forEach(x=>{
+    const b = document.getElementById('scf-'+x);
+    if(b) b.classList.toggle('active', x===r);
+  });
+  renderScoutReports();
+}
+
+function filterScout(){ renderScoutReports(); }
+
+function renderScoutReports(){
+  const q = (document.getElementById('scout-search')?.value||'').toLowerCase();
+  const show = TEAMS.filter(t=>{
+    const resMatch = scoutResFilter==='ALL' || t.res===scoutResFilter;
+    return resMatch && t.name.toLowerCase().includes(q);
+  });
+  document.getElementById('scout-grid').innerHTML = show.map(t=>buildScoutCard(t)).join('');
+}
+
+function buildScoutCard(t){
+  const isBye = t.res==='BYE';
+  const resBg = isBye?'var(--bye)':t.res==='W'?'#1A3A24':'#3A1A1A';
+  const resFg = isBye?'var(--byet)':t.res==='W'?'var(--green)':'var(--red)';
+  const tac = SCOUT_TACTICAL[t.name]||{weapons:[],vulnerabilities:[],howToAttack:[],verdict:''};
+  const teamPlayers = PLAYERS.filter(p=>p.team===t.name||t.name.includes(p.team.split(' ')[0])||p.team.includes(t.name.split(' ')[0]));
+
+  const fpcr = t.fpcr||0;
+  const fpcrCol = fpcrc(fpcr);
+  const dc = ETXP_CONCEDED[t.name];
+  const defConv = dc&&t.pa?+(dc/t.pa).toFixed(2):null;
+
+  // Attack panel
+  const attackPanel=`<div class="scout-panel">
+    <div class="scout-panel-title" style="color:#60A5FA">🎯 ATTACK</div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Field Pos Value (ETxP)</span><span class="scout-stat-value" style="color:#60A5FA">${t.etxp??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Conversion (FPCR)</span><span class="scout-stat-value" style="color:${fpcrCol}">${fpcr?fpcr+'×':'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Run Metres</span><span class="scout-stat-value">${t.runM?.toLocaleString()??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Gainline Metres</span><span class="scout-stat-value">${t.gain?.toLocaleString()??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Line Breaks</span><span class="scout-stat-value" style="color:${t.lb>=7?'var(--green)':t.lb>=4?'var(--amber)':'var(--red)'}">${t.lb??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Tries Scored</span><span class="scout-stat-value">${t.ts??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Red Zone PTBs</span><span class="scout-stat-value" style="color:${t.rzPtbs>=40?'var(--green)':'var(--text)'}">${t.rzPtbs??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">xPoints</span><span class="scout-stat-value">${t.xp??'—'}</span></div>
+  </div>`;
+
+  // Defence panel
+  const missCol=t.miss<=22?'var(--green)':t.miss<=37?'var(--amber)':t.miss<=45?'var(--red)':'#FF3030';
+  const severity=t.miss<=22?'🟢 Low':t.miss<=37?'🟡 Moderate':t.miss<=45?'🔴 High':'🚨 Critical';
+  const defPanel=`<div class="scout-panel">
+    <div class="scout-panel-title" style="color:#4ADE80">🛡️ DEFENCE</div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Tackle Efficiency</span><span class="scout-stat-value" style="color:${t.eff>=90?'var(--green)':t.eff<=86?'var(--red)':'var(--amber)'}">${t.eff!=null?t.eff+'%':'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Missed Tackles</span><span class="scout-stat-value" style="color:${missCol}">${t.miss??'—'} ${t.miss!=null?severity:''}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Dominant Tackles</span><span class="scout-stat-value" style="color:${t.dom>=15?'var(--green)':'var(--text)'}">${t.dom??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">ETxP Conceded</span><span class="scout-stat-value" style="color:var(--muted)">${dc??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Def Conversion</span><span class="scout-stat-value" style="color:${defConv>=1.5?'var(--green)':defConv>=1.0?'var(--amber)':'var(--red)'}">${defConv??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Tries Against</span><span class="scout-stat-value" style="color:${t.ta<=2?'var(--green)':t.ta>=7?'var(--red)':'var(--text)'}">${t.ta??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Attack Rating</span><span class="scout-stat-value" style="color:${rc(t.att||0)}">${t.att??'—'}/10</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Defence Rating</span><span class="scout-stat-value" style="color:${rc(t.def||0)}">${t.def??'—'}/10</span></div>
+  </div>`;
+
+  // Set management panel
+  const nedCol=t.netErr>0?'var(--green)':t.netErr<0?'var(--red)':'var(--muted)';
+  const ruckCol=t.ptb<3.45?'var(--green)':t.ptb>3.75?'var(--amber)':'var(--text)';
+  const setPanel=`<div class="scout-panel">
+    <div class="scout-panel-title" style="color:var(--gold)">⚙️ SET MANAGEMENT</div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Completion Rate</span><span class="scout-stat-value" style="color:${t.comp>=85?'var(--green)':t.comp>=75?'var(--amber)':'var(--red)'}">${t.comp!=null?t.comp+'%':'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Errors</span><span class="scout-stat-value" style="color:${t.err<=8?'var(--green)':t.err>=15?'var(--red)':'var(--amber)'}">${t.err??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Net Error Diff</span><span class="scout-stat-value" style="color:${nedCol};font-size:13px">${t.netErr!=null?(t.netErr>0?'+':'')+t.netErr:'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Repeat Sets Earned</span><span class="scout-stat-value" style="color:${t.repSets>=18?'var(--green)':t.repSets>=12?'var(--amber)':'var(--text)'}">${t.repSets??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Ruck Speed (PTB)</span><span class="scout-stat-value" style="color:${ruckCol}">${t.ptb??'—'}s</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Penalties</span><span class="scout-stat-value" style="color:${t.pen<=3?'var(--green)':t.pen>=9?'var(--red)':'var(--amber)'}">${t.pen??'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Possession</span><span class="scout-stat-value">${t.poss!=null?t.poss+'%':'—'}</span></div>
+    <div class="scout-stat-row"><span class="scout-stat-label">Territory</span><span class="scout-stat-value">${t.terr!=null?t.terr+'%':'—'}</span></div>
+  </div>`;
+
+  // Rating bars
+  const ratingBars = isBye ? '' : `<div style="margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800">ATTACK</span>
+        <span style="font-size:14px;font-weight:900;color:${rc(t.att||0)}">${t.att}/10</span>
+      </div>
+      <div class="scout-rating-bg"><div class="scout-rating-fill" style="width:${(t.att||0)*10}%;background:${rc(t.att||0)}"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800">DEFENCE</span>
+        <span style="font-size:14px;font-weight:900;color:${rc(t.def||0)}">${t.def}/10</span>
+      </div>
+      <div class="scout-rating-bg"><div class="scout-rating-fill" style="width:${(t.def||0)*10}%;background:${rc(t.def||0)}"></div></div>
+    </div>
+  </div>`;
+
+  // Key players
+  const playerSection = teamPlayers.length===0 ? '' : `<div class="scout-players">
+    <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">👤 KEY PLAYERS</div>
+    <div class="scout-players-grid">
+      ${teamPlayers.map(p=>{
+        const rmoeCol2=p.rmoe>0.5?'var(--green)':p.rmoe>-0.5?'var(--amber)':'var(--red)';
+        return `<div class="scout-player">
+          <div class="scout-player-swatch" style="background:#${t.pri}">${p.pos.slice(0,2).toUpperCase()}</div>
+          <div style="flex:1;min-width:0">
+            <div class="scout-player-name">${p.name}</div>
+            <div class="scout-player-pos">${p.pos}</div>
+            <div class="scout-player-stats">
+              <span class="scout-player-stat"><span>${p.metres}m</span></span>
+              <span class="scout-player-stat">RMOE <span style="color:${rmoeCol2}">${p.rmoe>0?'+':''}${p.rmoe}</span></span>
+              <span class="scout-player-stat">ErRate <span>${p.errorRate}</span></span>
+              ${p.tries>0?`<span class="scout-player-stat">🎯 <span>${p.tries}T</span></span>`:''}
+              ${p.domTck>0?`<span class="scout-player-stat">💥 <span>${p.domTck}dom</span></span>`:''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Tactical section
+  const tacSection=`<div class="scout-tactical">
+    <div class="scout-tac-box" style="background:#0D1E0D;border:1px solid #1A3A1A">
+      <div class="scout-tac-title" style="color:var(--green)">✅ THEIR WEAPONS</div>
+      ${tac.weapons.map(w=>`<div class="scout-tac-item"><span class="scout-tac-dot">▸</span><span style="color:#B0CCB0;font-size:11px">${w}</span></div>`).join('')}
+    </div>
+    <div class="scout-tac-box" style="background:#1E0D0D;border:1px solid #3A1A1A">
+      <div class="scout-tac-title" style="color:var(--red)">⚠️ THEIR VULNERABILITIES</div>
+      ${tac.vulnerabilities.map(v=>`<div class="scout-tac-item"><span class="scout-tac-dot">▸</span><span style="color:#CCB0B0;font-size:11px">${v}</span></div>`).join('')}
+    </div>
+    <div class="scout-tac-box" style="background:#0D1520;border:1px solid #1A2A3A">
+      <div class="scout-tac-title" style="color:#60A5FA">🎯 HOW TO BEAT THEM</div>
+      ${tac.howToAttack.map(h=>`<div class="scout-tac-item"><span class="scout-tac-dot">▸</span><span style="color:#AAC0D8;font-size:11px">${h}</span></div>`).join('')}
+    </div>
+  </div>
+  <div class="scout-verdict">
+    <div class="scout-verdict-title">ANALYST VERDICT</div>
+    <div class="scout-verdict-text">${tac.verdict}</div>
+  </div>`;
+
+  const scoreDisplay = isBye
+    ? `<span style="font-size:13px;color:var(--byet);font-weight:800;padding:6px 14px;background:var(--bye);border-radius:8px">ROUND 1 BYE</span>`
+    : `<div style="text-align:right">
+        <div style="font-size:28px;font-weight:900;color:${t.res==='W'?'var(--green)':'var(--muted)'};letter-spacing:-1px">${t.pf} – ${t.pa}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">vs ${t.opp}</div>
+      </div>`;
+
+  return `<div class="scout-card" data-res="${t.res}" data-name="${t.name.toLowerCase()}">
+    <div class="scout-header" style="background:linear-gradient(135deg,#${t.pri}22,#${t.pri}08);border-bottom:1px solid #${t.pri}44">
+      <div class="scout-team-info">
+        <div class="scout-swatch" style="background:#${t.pri};border:2px solid #${t.sec||'333'}"></div>
+        <div>
+          <div class="scout-name">${t.name}</div>
+          <div class="scout-meta">${isBye?'Round 1 BYE':'Round 1 · '+t.res+' · vs '+t.opp+(t.res!=='BYE'?' · ETxP '+t.etxp+' · FPCR '+t.fpcr+'×':'')}</div>
+        </div>
+      </div>
+      ${scoreDisplay}
+    </div>
+    <div class="scout-body">
+      ${ratingBars}
+      ${isBye?`<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No Round 1 data — BYE. Tactical notes based on 2025–2026 pre-season trends.</div>`:`<div class="scout-panels">${attackPanel}${defPanel}${setPanel}</div>`}
+      ${playerSection}
+      ${tacSection}
+    </div>
+  </div>`;
+}
+
+function buildScoutReports(){ renderScoutReports(); }
+buildScoutReports();
+</script>
+</body>
+</html>
